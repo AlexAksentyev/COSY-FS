@@ -10,10 +10,10 @@ endef
 core.bld: $(addprefix $(CORE-DIR)/bin/, $(CORE))
 	echo $(CORE) >> core.bld
 
-setups.bld: $(addprefix bin/setups/, $(SETUPS)) core.bld
+setups.bld: $(addprefix bin/setups/, $(SETUPS))
 	echo $(SETUPS) >> setups.bld
 
-support.bld: $(addprefix bin/support/, $(SUPPORT)) setups.bld
+support.bld: $(addprefix bin/support/, $(SUPPORT))
 	echo $(SUPPORT) >> support.bld
 
 $(CORE-DIR)/bin/cosy.bin: $(CORE-DIR)/src/cosy.fox ;
