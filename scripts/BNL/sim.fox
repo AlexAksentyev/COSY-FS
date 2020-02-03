@@ -1,0 +1,115 @@
+INCLUDE 'bin/BNL_setup';
+
+PROCEDURE SET_RAYS SX SY SZ;
+  VARIABLE I 1; VARIABLE J 1;
+  VARIABLE X 1; VARIABLE D 1;
+  VARIABLE N 1;
+  CR;
+  SR 1e-9 0 0 0 0 0 0 0 2; SSR SX SY SZ; { serve as reference particle }
+  N := 5;
+  LOOP I 1 N;
+    J := -(N-1) + 2*(I-1);
+    X := J*1e-3;
+    D := J*1e-4;
+    SR X 0 0 0 0 0 0 0 2; SSR SX SY SZ;
+    { SR 0 0 X 0 0 0 0 0 2; SSR SX SY SZ; }
+    { SR 0 0 0 0 0 D 0 0 2; SSR SX SY SZ; }
+  ENDLOOP;
+ENDPROCEDURE;
+PROCEDURE COLWRITE OU VAR;
+  VARIABLE I 1;
+  LOOP I 1 LENGTH(VAR); WRITE OU VAR|I; ENDLOOP;
+ENDPROCEDURE;
+FUNCTION MRK I;
+  MRK := LTRIM(SF(I, '(I4)'));
+ENDFUNCTION;
+PROCEDURE RUN;
+  VARIABLE VFRF 2; {contains the voltage and frequency of the RF}
+  VARIABLE FREQ 1; {Revolution frequency}
+  VARIABLE WHERE 100; {data file directory}
+  VARIABLE STR 500; VARIABLE MARKER 100 2;
+  VARIABLE J 1; VARIABLE I 1; VARIABLE K 1;
+  VARIABLE FMT 10; VARIABLE OSPNR 4000 3 3;
+  VARIABLE MU 800; VARIABLE NBAR 800 3;
+  FUNCTION FILENAME NAME;
+    FILENAME := WHERE&NAME&MARKER(2)&'.dat';
+  ENDFUNCTION;
+  PROCEDURE TRACK;
+    WRITE 6 'TRACKING' '';
+    MARKER(2) := '_TRACK';
+    SET_RAYS 0 0 1;
+
+    TRSPIROT -1;
+    OPENF 7 FILENAME('PRAY') 'REPLACE'; PRAY 7; CLOSEF 7;
+    OPENF 7 FILENAME('PSPI') 'REPLACE'; PSPI 7; CLOSEF 7;
+    OPENF 8 FILENAME('TRPRAY') 'REPLACE';
+    OPENF 9 FILENAME('TRPSPI') 'REPLACE';
+    TRPRAY 8; TRPSPI 9;
+    TR 100 1 -1 -3 1.1 1.1 0 0 -12;
+    CLOSEF 8; CLOSEF 9;
+  ENDPROCEDURE; {TRACK}
+  PROCEDURE WRITEMU;
+    VARIABLE MU 800; VARIABLE NBAR 800 3;
+    VARIABLE MUARR 800 1; VARIABLE FMT 10;
+    VARIABLE NBAR0 3;
+    VARIABLE I 1;
+    FMT := '(E30.20)';
+    TSS MU NBAR 0; MUARR(1) := MU; NBAR0 := CONS(NBAR(1))&CONS(NBAR(2))&CONS(NBAR(3));
+    WRITE 6 'MU0: '&ST(CONS(MU)) 'NBAR0: ' NBAR0 '|1-NORM|: '&ST(ABS(1-VEL2NORM(NBAR0)));
+    SET_RAYS 0 0 1;
+    POLVAL 1 MUARR 1 RAY 6 MUARR 1;
+    POLVAL 1 NBAR  3 RAY 6 NBAR  3;
+    OPENF 100 FILENAME('MU') 'REPLACE';
+      WRITE 100 '                       MU                       NX                       NY                       NZ';
+      LOOP I 1 LENGTH(MUARR(1));
+        WRITE 100 SF(MUARR(1)|I, FMT)&SF(NBAR(1)|I, FMT)&SF(NBAR(2)|I, FMT)&SF(NBAR(3)|I, FMT);
+      ENDLOOP;
+    CLOSEF 100;
+  ENDPROCEDURE;
+{ <<<<<<< HEAD }
+
+  { DATA OUTPUT DIRECTORY }
+  WRITE 6 '';
+  WHERE := 'data/BNL/rotspi_debug/';
+  MARKER(1):=''; MARKER(2):=MARKER(1);
+{ ======= }
+{   PROCEDURE TRACK; }
+{     TRSPIROT 1; }
+{     SET_RAYS 0 0 1; }
+{     {\output PHASE SPACE and SPIN data!{\ }
+{     OPENF 7 WHERE&'PRAY'&MARKER(2)&'.dat' 'REPLACE'; PRAY 7; CLOSEF 7; }
+{     OPENF 7 WHERE&'PSPI'&MARKER(2)&'.dat' 'REPLACE'; PSPI 7; CLOSEF 7; }
+{     OPENF 8 WHERE&'TRPRAY'&MARKER(2)&'.dat' 'REPLACE'; }
+{     OPENF 9 WHERE&'TRPSPI'&MARKER(2)&'.dat' 'REPLACE'; }
+{     TRPRAY 8; TRPSPI 9; }
+{     TR NTRN NSKIP -1 -3 1.1 1.1 0 0 -12; }
+{     CLOSEF 8; CLOSEF 9; }
+{   ENDPROCEDURE; }
+  
+{   {\ DATA OUTPUT DIRECTORY !{\ }
+{   WRITE 6 ''; }
+{   WHERE := 'data/BNL/TEST/'; }
+{   MARKER(1):='_'; MARKER(2):=''; }
+{ >>>>>>> working_ROTSPI }
+    OS 'mkdir -p '&WHERE;  WRITE 6 'WRITING TO: '&WHERE;
+    OS 'rm -vfr '&WHERE&'*'&MARKER(1);
+    OS 'mkdir -p img/BNL/';
+  GROUTF 'img/BNL/TR' 1;
+
+  FMT := '(E15.7)';
+  { SIMULATION PARAMETERS }
+  OV 5 3 0;
+  RP 270.0092 1876.5592/AMUMEV 1;
+  RPS 1 -.142987;
+  
+  NTRN := 100; NSKIP := 1;
+
+  FREQ := REVFREQ(145.8456);
+  VFRF := 100&(50*FREQ); {100: RF voltage; 50 : harmonic number}
+  
+  { SIMULATION PROPER }
+  CW_SETUP VFRF 0 0 0 ZEROS(32);
+  TRACK;
+ENDPROCEDURE; {RUN}
+
+RUN; END;

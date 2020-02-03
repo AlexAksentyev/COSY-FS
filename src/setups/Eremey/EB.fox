@@ -1,0 +1,1097 @@
+include '../../bin/COSY';
+
+PROCEDURE SET_RAYS;
+  VARIABLE I 1; VARIABLE J 1;
+  VARIABLE X 1; VARIABLE D 1;
+  VARIABLE N 1;
+  SR 1e-9 0 0 0 0 0 0 0 2; SSR 0 0 1; { serve as reference particle }
+  N := 5;
+  LOOP I 1 N;
+    J := -NINT(N/2) + I;
+    X := J*1e-3;
+    D := J*1e-4;
+    SR X 0 0 0 0 0 0 0 2; SSR 0 0 1;
+    SR 0 0 X 0 0 0 0 0 2; SSR 0 0 1;
+    SR 0 0 0 0 0 D 0 0 2; SSR 0 0 1;
+  ENDLOOP;
+ENDPROCEDURE;
+
+procedure run;
+
+VARIABLE PI 1;
+VARIABLE E 1;
+VARIABLE electron_mass 1;
+VARIABLE Mp 1;
+VARIABLE Mmu 1;
+VARIABLE c 1;
+VARIABLE Pc 1;
+VARIABLE Md 1;
+VARIABLE gamma 1;
+VARIABLE En 1;
+VARIABLE Mdeu 1;
+VARIABLE Qp 1;
+VARIABLE Q 1;
+VARIABLE beta 1;
+VARIABLE MPs 1;
+VARIABLE Cir 1;
+VARIABLE Rav 1;
+VARIABLE T 1;
+VARIABLE Frev 1;
+VARIABLE FrevMHz 1;
+VARIABLE OmegaR 1;
+VARIABLE h 1;
+VARIABLE pi1 1;
+VARIABLE RFfreq 1;
+VARIABLE Lcavity 1;
+VARIABLE V 1;
+VARIABLE MCF 1;
+VARIABLE etta 1;
+VARIABLE W 1;
+VARIABLE OmegaZ 1;
+VARIABLE Nuz 1;
+VARIABLE Nzturn 1;
+VARIABLE dWsep 1;
+VARIABLE dPsep 1;
+VARIABLE Mdp 1;
+VARIABLE dW 1;
+VARIABLE Rdp 1;
+VARIABLE dF 1;
+VARIABLE dFdeg 1;
+VARIABLE G 1;
+VARIABLE HalfLengthBunch 1;
+VARIABLE SpinTuneSpread 1;
+VARIABLE LongitudinalParticleTune 1;
+VARIABLE CavityLength 1;
+VARIABLE VoltagePerGap 1;
+VARIABLE gammaG 1;
+VARIABLE tauspinB 1;
+VARIABLE tauspinE 1;
+VARIABLE Rig 1;
+VARIABLE RigB 1;
+VARIABLE LBarc 1;
+VARIABLE LBss 1;
+VARIABLE LEss 1;
+VARIABLE Ess 1;
+VARIABLE Esm 1;
+VARIABLE Bss 1;
+VARIABLE BsskGs 1;
+VARIABLE Lss 1;
+VARIABLE Lsm 1;
+VARIABLE Nbe 1;
+VARIABLE Lbe 1;
+VARIABLE Lplate 1;
+VARIABLE Bfield 1;
+VARIABLE Bfld 1;
+VARIABLE Rb 1;
+VARIABLE Rbcm 1;
+VARIABLE Nb 1;
+VARIABLE Lbm 1;
+VARIABLE Larc 1;
+VARIABLE FspinBfield 1;
+VARIABLE FspinBss 1;
+VARIABLE FspinEss 1;
+VARIABLE FspinEB 1;
+VARIABLE Fspin 1;
+VARIABLE FiMomentumBss 1;
+VARIABLE FiSpinBss 1;
+VARIABLE FiSpinEss 1;
+VARIABLE FiSpinEssBss 1;
+VARIABLE FiMomentumBarc 1;
+VARIABLE FiSpinBarc 1;
+VARIABLE FiSpinTotal 1;
+VARIABLE K1QFA1 1;
+VARIABLE K1QDA1 1;
+VARIABLE K1QFA2 1;
+VARIABLE K1QDA2 1;
+
+VARIABLE COSYMU 100 3;
+
+VARIABLE NS 1;
+VARIABLE N1 1;
+VARIABLE N2 1;
+VARIABLE N3 1;
+VARIABLE N4 1;
+VARIABLE N5 1;
+
+VARIABLE A0 1;
+VARIABLE A1 1;
+VARIABLE A2 1;
+VARIABLE A3 1;
+VARIABLE A4 1;
+VARIABLE A5 1;
+
+VARIABLE GSFP 1;
+VARIABLE GSDP 1;
+VARIABLE GSFN 1;
+VARIABLE GSDN 1;
+
+VARIABLE ORDER 1;
+VARIABLE FRMODE 1;
+VARIABLE DELTA 1;
+
+VARIABLE NURF 1;
+VARIABLE VRF 1 1 1;
+VARIABLE RFFLAG 1;
+
+  VARIABLE WHERE 100;
+  VARIABLE I 1; VARIABLE J 1;
+  VARIABLE X 1; VARIABLE D 1;
+
+procedure rotate phi;
+variable M 1000 4;
+variable i 1;
+M(1):=COS(PHI*DEGRAD)*MAP(1)+SIN(PHI*DEGRAD)*MAP(3);
+M(3):=-SIN(PHI*DEGRAD)*MAP(1)+COS(PHI*DEGRAD)*MAP(3);
+M(2):=COS(PHI*DEGRAD)*MAP(2)+SIN(PHI*DEGRAD)*MAP(4);
+M(4):=-SIN(PHI*DEGRAD)*MAP(2)+COS(PHI*DEGRAD)*MAP(4);
+LOOP i 1 4;
+  MAP(i):=M(i);
+ENDLOOP;
+endprocedure;
+
+PROCEDURE DIPOLE L B G ANGLE1 ANGLE2 TILT;
+VARIABLE B0 1;
+VARIABLE L0 1;
+VARIABLE G0 1;
+VARIABLE TILT0 1;
+VARIABLE NT 1;
+VARIABLE KN 1 1;
+VARIABLE S1 1 1;
+VARIABLE S2 1 1;
+VARIABLE R 1;
+VARIABLE PHI 1;
+NT:=1;
+L0:=L/100;{in meters}
+IF (B=0);
+  DL L0;
+ELSEIF TRUE;
+  B0:=ABS(B)/10;{in Tesla}
+  G0:=G*10;{in T/m}
+  R:=CONS(P0)/(CLIGHT*1e-6)/B0;
+  KN(1):=G0/R/B0;
+  S1(1):=ANGLE1*DEGRAD;
+  S2(1):=ANGLE2*DEGRAD;
+  PHI:=L0/R/DEGRAD;
+  TILT0:=TILT;
+  ROTATE TILT0;
+  IF (B<0);
+    CB;
+  ENDIF;
+  {DI R PHI 0.05 0 0 0 0;}
+  {WRITE 6 'DI' L0 PHI;}
+  MCLK L0 PHI 0.05 KN S1 S2 NT;
+  IF (B<0);
+    CB;
+  ENDIF;
+  ROTATE -TILT0;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE SEPARATOR L B TILT;
+VARIABLE B0 1;
+VARIABLE L0 1;
+VARIABLE R 1;
+VARIABLE PHI 1;
+L0:=L/100;{in meters}
+IF (B=0);
+  DL L0;
+ELSEIF TRUE;
+  R:=CONS(CHIE)/ABS(B)/1e5;
+  PHI:=L0/R/DEGRAD;
+  IF (B<0);
+    CB;
+  ENDIF;
+  ES R PHI 0.05 N1 N2 N3 N4 N5; {Electrostatic bending element}
+  IF (B<0);
+    CB;
+  ENDIF;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE WIEN L2 B1 B2;
+VARIABLE R1 1;
+VARIABLE R2 1;
+VARIABLE B0 1;
+VARIABLE L1 1;
+L1:=L2/100; {in meters}
+B0:=ABS(B1)/10;{in Tesla}
+R2:=CONS(CHIM)/B0;
+R1:=CONS(CHIE)/ABS(B2)/1e5;
+R1:=R2;
+WF R1 R2 L1 0.05;
+ENDPROCEDURE;
+
+PROCEDURE QUADRUPOLE L G TILT;
+VARIABLE L0 1;
+VARIABLE G0 1;
+VARIABLE TILT0 1;
+
+L0:=L/100;{in meters}
+IF (G=0);
+  DL L0;
+ELSEIF (1=1);
+  G0:=G*10;{in Tesla/m}
+  TILT0:=TILT;
+  ROTATE TILT0;
+  MQ L0 G0*0.05 0.05; {Magnetic quadrupole}
+  {WRITE 6 'MQ' L0 G0*0.05;}
+  ROTATE -TILT0;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE SEXTUPOLE L S Tilt;
+VARIABLE L0 1;
+VARIABLE S0 1;
+
+L0:=L;{in meters}
+IF (S=0);
+  DL L0;
+ELSEIF (1=1);
+  S0:=S*1000;{in kV/m}
+  MH L0 S0*0.05*0.05 0.05;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE SEXTUPOLE1 L S Tilt;
+VARIABLE L0 1;
+VARIABLE S0 1;
+
+L0:=L/100;{in meters}
+IF (S=0);
+  DL L0;
+ELSEIF (1=1);
+  S0:=S/2;
+  MH L0 S0 0.05;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE SEXTUPOLE2 L S Tilt;
+VARIABLE L0 1;
+VARIABLE S0 1;
+L0:=L;
+IF (S=0);
+  DL L0;
+ELSEIF (1=1);
+  S0:=S*CONS(CHIM)*0.05*0.05;
+  MH L0 S0 0.05;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE M_ELEMENT m B TILT;
+VARIABLE B0 1;
+VARIABLE TILT0 1;
+
+IF (B#0);
+  IF (m=1);
+    TILT0:=TILT;
+    ROTATE TILT0;
+    B0:=B/10;{in Tesla}
+    MQ 1e-6 (B0/1E-6)*0.05 0.05;
+    DL -1e-6;
+    ROTATE -TILT0;
+  ENDIF;
+  IF (m=2);
+    TILT0:=TILT;
+    ROTATE TILT0;
+    B0:=B*10;{in Tesla/m}
+    MH 1e-6 (B0/1E-6)*0.05*0.05 0.05;
+    DL -1e-6;
+    ROTATE -TILT0;
+  ENDIF;
+  IF (m=3);
+    TILT0:=TILT;
+    ROTATE TILT0;
+    B0:=B*1000;{in Tesla/m}
+    MO 1e-6 (B0/1E-6)*0.05*0.05*0.05 0.05;
+    DL -1e-6;
+    ROTATE -TILT0;
+  ENDIF;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE SOLENOID L B A;
+VARIABLE L0 1;
+VARIABLE B0 1;
+VARIABLE A0 1;
+
+L0:=L/100;{in meters}
+B0:=B/10;{in T/m}
+IF (A=0);
+  CMSP B0 0.05 10000 (10000-L0)/2 (10000+L0)/2;
+ELSEIF (1=1);
+  A0:=A/100;{in T/m}
+  CMS B0 A0 L0;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE PARAMS Delta Lplate BsskGs Esm Lbm Bfld;
+{E+B: Eplate+Bbe, length Lbe}
+PI:=3.1415926535897932385;
+E:=2.7182818284590452354;
+electron_mass:=0.510998910;
+Mp:=938.272046;
+c:=299792458e2;
+{=======================Short discription===================================
+=================================}
+{The ring consists of two arcs and two Straight sections: RING=ARC+STR+ARC+S
+TR}
+{Each ARC has 4 bend magnets and in the middle of each arc  the straight sec
+tion is inserted:  ARC= B+B+STR SEC+B+B,}
+{Each STR has 8  B+E" elements: STR= 8 * ("B+E" elements)}
+{Total lattice is : RING={[B+B]+[STR SEC]+[B+B]}+   <==        first ARC}
+{                                      +{8 * ["B+E" elements]}+   <==        
+first STR}
+{                                      +{[B+B]+[STR SEC]+[B+B]}+  <==        
+second ARC}
+{                                      +{8 * ["B+E" elements]}    <==        s
+econd STR}
+{------------------------------------------PARAMETERS-----------------------
+----------------------------------------------------------------------------
+-----------------}
+{===========================================================================
+===========================}
+{}
+{---------------------------------------------------------------------------
+----BEAM--------------------------------------------------------------------
+----------------------}
+{Deutron Momentum in [MeV/c]}
+Pc:=1042.24;
+{-----------------------------------}
+{deutron mass in [MeV]}
+Md:=2*Mp;
+{----------------------------------}
+{Lorentz factor}
+gamma:=sqrt(Pc*Pc/Md/Md+1);
+{----------------------------------}
+{energy in [MeV]-00}
+En:=Md*(gamma-1);
+{----------------------------------}
+{deutron mass in  [kG]}
+Mdeu:=2*1.6726e-27;
+{----------------------------------}
+{el  charge in [C]}
+Qp:=EZERO;
+Q:=1*Qp;
+{----------------------------------}
+{relative velocity}
+beta:=sqrt(1-1/gamma/gamma);
+{---------------------------------}
+{Momentum}
+MPs:=Mdeu*c*beta*gamma/100;
+{==============================INSERTION for calculation of Revolution frequ
+ency and separatrix sizes and so on===================}
+{Ring circumference in m}
+Cir:=149.211;
+{-----------------------------------}
+{average radius of ring, in m}
+Rav:=Cir/pi/2;
+{-----------------------------------}
+{Period of revolution in sec}
+T:=Cir/beta/c*100;
+{-----------------------------------}
+{Revolution frequency in Herz}
+Frev:=1/T;
+{-----------------------------------}
+{Revolution frequency in MHz}
+FrevMHz:=Frev/1000000;
+{----------------------------------}
+{the angular frequency in rad per sec}
+OmegaR:=Frev*2*pi;
+{----------------------------------}
+{Harmonic number}
+h:=4;
+{---------------------------------}
+{number PI}
+pi:=3.1415926535897932384626433832795;
+{---------------------------------}
+{RF cavity frequency in MHz}
+RFfreq:=h*FrevMHz;
+{--------------------------------}
+{Quater wave Cavity length in m}
+Lcavity:=(c*0.01)/(RFfreq*10^6)/4;
+{Usually the cavity is shorter since we load cavity by ferrite, but it gives
+ a scale of size}
+{--------------------------------}
+{Voltage per gap in MV}
+V:=0.200000;
+{-------------------------------}
+{Transition energy or momentum compaction factor}
+MCF:=0.0689877;
+{------------------------------}
+{etta fcator}
+etta:=1/gamma^2-MCF;
+{-----------------------------}
+{Total energy, kinetic+potenttial, in MeV}
+W:=Md+En;
+{----------------------------}
+{Longitudinal angular frequency in rad per second}
+OmegaZ:=sqrt(V*h*etta/(2*pi*W))*c/Rav/100;
+{----------------------------}
+{Longitudinal tune, number longitudinal oscillation per one turn}
+Nuz:=sqrt(V*h*etta/(2*pi*W))/beta;
+{----------------------------}
+{Turns number for one longitudinal oscillation, inversal value of longitudin
+al tune}
+Nzturn:=1/Nuz;
+{---------------------------}
+{separatrix size by relative energy +-(dW/W)max:}
+dWsep:=beta*sqrt(V/(pi*h*etta*W*2));
+{---------------------------}
+{separatrix size by relative momentum +-dp/p:}
+dPsep:=dWsep/beta^2;
+{---------------------------}
+{Maximum relative  momentum spread in bunch +-dp/p=$dp}
+Mdp:=0.0006;
+{--------------------------}
+{Maximum energy spread in bunch +-dW}
+dW:=Mdp*beta^2;
+{-------------------------}
+{Ratio of momentum bunch size and momentum separatriz size}
+Rdp:=Mdp/dPsep;
+{------------------------}
+{Longitudinal bunch size in rad +-dF:}
+dF:=h*etta*c/100/beta/Rav/OmegaZ*dW;
+{-----------------------}
+{or longitudinal bunch size in rad +-dF through momentum relative spread dp/
+p of bunch; it has to be the same}
+dF:=h*etta/Nuz*Mdp;
+{----------------------}
+{or longitudinal bunch size in degrees +-dFdeg}
+dFdeg:=dF*180/pi;
+{----------------------}
+G:=-0.142987;
+{***************************************************************************
+*********************}
+{*****************************NOW WE HAVE TO TEST THE MAIN CONDITIONs*******
+***************}
+{1. The bunch length has to be less +-60 degree}
+HalfLengthBunch:=dFdeg;
+{-----------------------------------------------------------}
+{2. The value Spin Tune Spread (G*delta gamma=G*$gamma*$dW) has to be one-tw
+o order less than the longitudinal spin tune ($Nuz)}
+SpinTuneSpread:=-G*gamma*dW;
+LongitudinalParticleTune:=Nuz;
+{----------------------------------------------------------}
+{If these two CONDITIONS are fulfilled we make choice for the final RF frequ
+ency of cavity (cavity length ~15 m) and voltage gap (V~0.1-0.2 MV per gap)}
+{-----------------------------------------------------------}
+{3. The cavity length has to be about 14-16 m}
+CavityLength:=Lcavity;
+{----------------------------------------------------------}
+{4. Voltage per Gap has to be ~0.1-0.5 MV}
+VoltagePerGap:=V;
+{-----------------------------------------------------------}
+{===========================================================================
+==============================}
+{--------------------------------------------------------------------------E
++B elements on the straight sections----------------------------------------
+------------------------}
+{===========================================================================
+==============================}
+{-------------Full Equetion:                                 dS/dt=e/(m*gamm
+a)*S*{ [gamma*(G+1/gamma)*B]-[(gamma*G)+gamma/(gamma+1)*beta x E/c]}  (1)}
+{---------------------------------------------------------------------------
+----------------------------------------------------------------------------
+--------------------------------}
+{anomalous magnetic moment od Deuteron}
+G:=-0.142987;
+{--------------------------------}
+{spin tune in one arc (180 degrees turn) in bending magnet relative of momen
+tum vector:                                                                 
+      gamma*G/2 (2)}
+gammaG:=gamma*G/2;
+{--------------------------------}
+{coefficient in front of spin tune in real space in B field:                
+                                                                            
+        [gamma*(G+1/gamma)*B] (3)}
+tauspinB:=gamma*(G+1/gamma);
+{--------------------------------}
+{coefficient in front of spin tune in real space in E field:                
+                                                        [(gamma*G)+gamma/(ga
+mma+1)*beta x E/c]  (4)}
+tauspinE:=(gamma*G+gamma/(gamma+1))*beta*beta;
+{--------------------------------}
+{magnetic rigidity B*R in T*m:                                              
+                                                                            
+                B*R=m*gamma*beta*c/Q  (5)}
+Rig:=Mdeu*gamma*beta*c/Q/100;
+{--------------------------------}
+{magnetic rigidity B*R in kGs*cm:                                           
+                                                                            
+                   B*R=m*gamma*beta*c/Q (5)}
+RigB:=Rig*1000;
+{----------------------------------}
+{Larc*Barc in arc (half ring) in T*m:         B*pi*R=pi*m*gamma*beta*c/Q  (6)}
+LBarc:=pi*Rig;
+{---------------------------------}
+{Lss*Bss in straight section (one section) in T*m:                          
+                                                        Lss*Bss=-Larc*Barc*{
+gamma^2*G/(1+gamma)}  (7)}
+LBss:=-G*gamma*gamma*LBarc/(1+G);
+{--------------------------------}
+{Lss*Ess in straight section (one section): since Ess=c*betta*Bss in V      
+                                                            Lss*Ess=Lss*Bss*
+c*beta  (8)}
+LEss:=LBss*c*beta/100;
+{or it is the same through original ratio just to controll    Lss*Ess=-{gamma^
+2*G/(1+gamma)}*pi*m*gamma*beta^2*c^2/Q  (9)}
+{taking into account:     betta^2=(gamma^2-1)/gamma^2     (10)}
+{       Lss*Ess=-{G/(1+gamma)}*pi*m*gamma*(gamma^2-1)*c^2/Q (11)}
+{---in result:}
+LEss:=-Mdeu*gamma*c*c/Q/10000*G*pi*(gamma*gamma-1)/(1+G);
+{--------------------------------}
+{Ess in MV/m Ess=12MV/m}
+Ess:=12000000;
+{Ess in kV/cm}
+Esm:=120;
+{--------------------------------}
+{Magnetic field in E+B elements: Bss in Tesla       Bss=Ess/(c*betta)   (12)}
+Bss:=Ess/(beta*c/100);
+{Magnetic field in E+B elements: Bss in kGs}
+BsskGs:=Bss*10;
+{---------------------------------}
+{The total length of electrodes in m:}
+Lss:=LEss/Ess;
+{--------}
+{The total length of electrodes in cm:}
+Lsm:=Lss*100;
+{-------------------------------}
+{number of E+B elements s on one straight section for 270 MeV}
+Nbe:=8.;
+{number of E+B elements s on one straight section for 75 MeV}
+{$Nbe=2.;  =>           2}
+{------------------------------}
+{length of one E+B element in [m]}
+Lbe:=Lss/Nbe;
+{length of one E+B element in [cm]}
+Lplate:=Lbe*100;
+{------------------------------}
+{===========================================================================
+===============================}
+{----------------------------------------------------------BEND MAGNET in AR
+C---------------------------------------------------------------------------
+--------------------}
+{===========================================================================
+===============================}
+{Magnetic field in arc magnet in Tesla}
+Bfield:=1.5;
+{Magnetic field in arc magnet in kGs}
+Bfld:=15.0;
+{Radius of curvature in arc magnet in m}
+Rb:=Rig/Bfield;
+{Radius of magnet curvature in cm}
+Rbcm:=Rb*100;
+{Number of magnets on half ring}
+Nb:=4;
+{Length of one arc bend magnet  in cm}
+Lbm:=pi*Rbcm/Nb;
+{Total length of bend magnet on one arc}
+Larc:=Nb*Lbm/100;
+{===========================================================================
+=============================}
+{-------------------------------------------------------Test of spin rotatio
+n---------------------------------------------------------------------------
+---------------------------}
+{===========================================================================
+=============================}
+{Spin rotation in arc}
+FspinBfield:=gamma*G*0.5;
+{----------------------------}
+{Spin rotation in straight section magnet field}
+FspinBss:=(gamma*G+1)/2*Bss*Lss/(Bfield*Larc);
+{---------------------------}
+{Spin rotation in straight section electric field}
+FspinEss:=-(gamma*G+gamma/(gamma+1))/2*Ess*Lss*beta/(0.01*c*Bfield*Larc);
+{---------------------------}
+{Spin rotation in E+B element}
+FspinEB:=FspinBss+FspinEss;
+{--------------------------}
+{Total spin rotation in arc+SS}
+Fspin:=FspinBfield+FspinBss+FspinEss;
+{===========================================================================
+=============================}
+{------------------------------------------------Second test----------------
+----------------------------------------------------------------------------
+----------------------------}
+{===========================================================================
+=============================}
+{Momentum rotation in rad only in magnetic field of deflector}
+FiMomentumBss:=Q*Bss*Lss/(Mdeu*gamma*0.01*c*beta);
+{------------------------------}
+{Spin angle rotation in magnetic field of all deflectors of one str sec in r
+ad}
+FiSpinBss:=FiMomentumBss*(gamma*G+1);
+{-----------------------------}
+{Spin angle rotation in electric field in rad}
+FiSpinEss:=-FiMomentumBss*(gamma*G+gamma/(gamma+1))*beta^2;
+{----------------------------}
+{Spin angle rotation in both E and B field of deflector in rad}
+FiSpinEssBss:=FiSpinBss+FiSpinEss;
+{---------------------------}
+{Momentum rotation in rad only in magnetic field of  one ARC}
+FiMomentumBarc:=Q*Bfield*Larc/(Mdeu*gamma*0.01*c*beta);
+{---------------------------}
+{Spin angle rotation in magnetic field of one arc  in rad}
+FiSpinBarc:=FiMomentumBarc*(gamma*G);
+{---------------------------}
+{Total spin rotation on one arc and one str sec}
+FiSpinTotal:=FiSpinBarc+FiSpinEssBss;
+{===========================================================================
+=============================}
+{------------------------------------------------QUADRUPOLES----------------
+----------------------------------------------------------------------------
+--------------------}
+{===========================================================================
+=============================}
+{------K1 from MAD (K1QFA1, and so on... in quadrupole QFA1)----------------
+----------------------}
+K1QFA1:=2.528339251;
+K1QDA1:=-2.597372404;
+K1QFA2:=2.390272943;
+K1QDA2:=-2.473688004;
+Esm:=-Esm;
+ENDPROCEDURE;
+
+N1:=1;
+N2:=-1;
+N3:=1;
+N4:=-1;
+N5:=1;
+
+A0:=1.066717916109775;
+A1:=1.6215939887044952;
+A2:=-0.9713991696899339;
+A3:=0.466860288912587;
+A4:=-0.11809443899423651;
+A5:=0.011332163947410089;
+
+Delta:=0;
+GSFP:=0;
+GSDP:=0;
+GSFN:=0;
+GSDN:=0;
+
+VRF(1,1):=1500; {RF Voltage}
+NURF:=975536.852*50;
+RFFLAG:=1; {RF Mode}
+FRMODE:=0;
+ORDER:=5;
+
+
+Mp:=938.272046;
+{Deutron Momentum in [MeV/c]}
+{CONS (P0) nominal value}
+Pc:=1042.24;
+{-----------------------------------}
+{deutron mass in [MeV]}
+Md:=2*Mp;
+{----------------------------------}
+{Lorentz factor}
+gamma:=sqrt(Pc*Pc/Md/Md+1);
+{----------------------------------}
+{energy in [MeV]}
+En:=Md*(gamma-1);
+
+OV ORDER 3 0; 
+RP En 1876.5592/AMUMEV 1;
+RPS 1 -0.142987;
+SB .01 .01 0 .01 .01 0 .01 .01 0 0 0;
+FR FRMODE;
+
+PARAMS Delta Lplate BsskGs Esm Lbm Bfld;
+WRITE 6 'PARAMETERS:'
+          'Lplate: '&ST(Lplate)
+          'BsskGs: '&ST(BsskGs)
+          'Esm: '&ST(Esm)
+          'Lbm: '&ST(Lbm)
+          'Bfld: '&ST(Bfld);
+
+GSDP:=0; {SDP Init}
+GSFP:=0; {SFP Init}
+GSFN:=0; {SFN Init}
+GSDN:=0; {SDN Init}
+
+UM;
+FC 1 1 2 A0 A1 A2 A3 A4 A5;
+FC 1 2 2 A0 A1 A2 A3 A4 A5;
+{===============2-d half of 1-th SS(b)================}
+{BeginLattice}
+QUADRUPOLE 5 -1.03 0;{QDA2 #1} 
+DL 0.25;{OD1 #2} 
+DL 0.15;{OSD #3} 
+DL 0.25;{OD2 #4} 
+DL 2.2;{ORB #5} 
+DL 0.25;{OD2 #6} 
+DIPOLE 15 0 0 0 0 0;{BPM #7} 
+DL 0.25;{OD1 #8} 
+QUADRUPOLE 5 1.011 0;{QFA2 #9} 
+QUADRUPOLE 5 1.011 0;{QFA2 #10} 
+DL 0.25;{OD1 #11} 
+DL 0.15;{OSF #12}
+IF RFFLAG=1; RF VRF 0 NURF 0 0.05; ENDIF; 
+DL 0.25;{OD2 #13} 
+DL 2.2;{ORB #14} 
+DL 0.25;{OD2 #15} 
+DIPOLE 15 0 0 0 0 0;{BPM #16} 
+DL 0.25;{OD1 #17} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #18} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #19} 
+DL 0.25;{OD1 #20} 
+DL 0.15;{OSD #21} 
+DL 0.25;{OD2 #22} 
+DL 2.2;{ORB #23} 
+DL 0.25;{OD2 #24} 
+DIPOLE 15 0 0 0 0 0;{BPM #25} 
+DL 0.25;{OD1 #26} 
+QUADRUPOLE 5 1.011 0;{QFA2 #27} 
+{==============2-d half of 1-th MS arc===============}
+QUADRUPOLE 5 1.338 0;{QFA1 #28} 
+DL 0.25;{OD1 #29} 
+DL 0.15;{OSF #30} 
+DL 0.25;{OD2 #31} 
+DIPOLE Lbm Bfld 0 0 0 0;{BDA #32} 
+DL 0.25;{OD2 #33} 
+DIPOLE 15 0 0 0 0 0;{BPM #34} 
+DL 0.25;{OD1 #35} 
+QUADRUPOLE 5 -1.171 0;{QDA1 #36} 
+QUADRUPOLE 5 -1.171 0;{QDA1 #37} 
+DL 0.25;{OD1 #38} 
+SEXTUPOLE2 0.15 GSDP 0;{SDP #39} 
+DL 0.25;{OD2 #40} 
+DIPOLE Lbm Bfld 0 0 0 0;{BDA #41} 
+DL 0.25;{OD2 #42} 
+DIPOLE 15 0 0 0 0 0;{BPM #43} 
+DL 0.25;{OD1 #44} 
+QUADRUPOLE 5 1.338 0;{QFA1 #45} 
+{==========1-th half of 1-th ES arc===================}
+QUADRUPOLE 5 1.011 0;{QFA2 #46} 
+DL 0.25;{OD1 #47} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #48} 
+DL 0.25;{OD2 #49} 
+WIEN Lplate BsskGs Esm; {R3#50}
+DL 0.25;{OD2 #51} 
+DIPOLE 15 0 0 0 0 0;{BPM #52} 
+DL 0.25;{OD1 #53} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #54} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #55} 
+DL 0.25;{OD1 #56} 
+SEXTUPOLE2 0.15 GSDP 0;{SDP #57} 
+DL 0.25;{OD2 #58} 
+WIEN Lplate BsskGs Esm; {R3#59} 
+DL 0.25;{OD2 #60} 
+DIPOLE 15 0 0 0 0 0;{BPM #61} 
+DL 0.25;{OD1 #62} 
+QUADRUPOLE 5 1.011 0;{QFA2 #63} 
+QUADRUPOLE 5 1.011 0;{QFA2 #64} 
+DL 0.25;{OD1 #65} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #66} 
+DL 0.25;{OD2 #67} 
+WIEN Lplate BsskGs Esm; {R3#68} 
+DL 0.25;{OD2 #69} 
+DIPOLE 15 0 0 0 0 0;{BPM #70} 
+DL 0.25;{OD1 #71} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #72} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #73} 
+DL 0.25;{OD1 #74} 
+SEXTUPOLE2 0.15 GSDN 0;{SDN  #75} 
+DL 0.25;{OD2 #76} 
+WIEN Lplate BsskGs Esm; {R3#77} 
+DL 0.25;{OD2 #78} 
+DIPOLE 15 0 0 0 0 0;{BPM #79} 
+DL 0.25;{OD1 #80} 
+QUADRUPOLE 5 1.011 0;{QFA2 #81} 
+{==============1-th SS(e)========================}
+{QFA2  OD1 SFN OD2  ORE  OD2 BPM OD1   QDA2}
+{QDA2  OD1 SDN OD2  ORE OD2 BPM OD1  QFA2}
+{============2-d half of 1-th ES arc==================}
+QUADRUPOLE 5 1.011 0;{QFA2 #82} 
+DL 0.25;{OD1 #83} 
+SEXTUPOLE2 0.15 GSFN 0;{SFN #84} 
+DL 0.25;{OD2 #85} 
+WIEN Lplate BsskGs Esm; {R3#86} 
+DL 0.25;{OD2 #87} 
+DIPOLE 15 0 0 0 0 0;{BPM #88} 
+DL 0.25;{OD1 #89} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #90} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #91} 
+DL 0.25;{OD1 #92} 
+SEXTUPOLE2 0.15 GSDN 0;{SDN  #93} 
+DL 0.25;{OD2 #94} 
+WIEN Lplate BsskGs Esm; {R3#95} 
+DL 0.25;{OD2 #96} 
+DIPOLE 15 0 0 0 0 0;{BPM #97} 
+DL 0.25;{OD1 #98} 
+QUADRUPOLE 5 1.011 0;{QFA2 #99} 
+QUADRUPOLE 5 1.011 0;{QFA2 #100} 
+DL 0.25;{OD1 #101} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #102} 
+DL 0.25;{OD2 #103} 
+WIEN Lplate BsskGs Esm; {R3#104} 
+DL 0.25;{OD2 #105} 
+DIPOLE 15 0 0 0 0 0;{BPM #106} 
+DL 0.25;{OD1 #107} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #108} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #109} 
+DL 0.25;{OD1 #110} 
+SEXTUPOLE2 0.15 GSDP 0;{SDP #111} 
+DL 0.25;{OD2 #112} 
+WIEN Lplate BsskGs Esm; {R3#113} 
+DL 0.25;{OD2 #114} 
+DIPOLE 15 0 0 0 0 0;{BPM #115} 
+DL 0.25;{OD1 #116} 
+QUADRUPOLE 5 1.011 0;{QFA2 #117} 
+{==================1-th half of 2-d MS arc===========}
+QUADRUPOLE 5 1.338 0;{QFA1 #118} 
+DL 0.25;{OD1 #119} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #120} 
+DL 0.25;{OD2 #121} 
+DIPOLE Lbm Bfld 0 0 0 0;{BDA #122} 
+DL 0.25;{OD2 #123} 
+DIPOLE 15 0 0 0 0 0;{BPM #124} 
+DL 0.25;{OD1 #125} 
+QUADRUPOLE 5 -1.171 0;{QDA1 #126} 
+QUADRUPOLE 5 -1.171 0;{QDA1 #127} 
+DL 0.25;{OD1 #128} 
+SEXTUPOLE2 0.15 GSDP 0;{SDP #129} 
+DL 0.25;{OD2 #130} 
+DIPOLE Lbm Bfld 0 0 0 0;{BDA #131} 
+DL 0.25;{OD2 #132} 
+DIPOLE 15 0 0 0 0 0;{BPM #133} 
+DL 0.25;{OD1 #134} 
+QUADRUPOLE 5 1.338 0;{QFA1 #135} 
+{====================1-th half of 2-d SS(b)==========}
+QUADRUPOLE 5 1.011 0;{QFA2 #136} 
+DL 0.25;{OD1 #137} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #138} 
+DL 0.25;{OD2 #139} 
+DL 2.2;{ORB #140} 
+DL 0.25;{OD2 #141} 
+DIPOLE 15 0 0 0 0 0;{BPM #142} 
+DL 0.25;{OD1 #143} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #144} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #145} 
+DL 0.25;{OD1 #146} 
+SEXTUPOLE2 0.15 GSDP 0;{SDP #147} 
+DL 0.25;{OD2 #148} 
+DL 2.2;{ORB #149} 
+DL 0.25;{OD2 #150} 
+DIPOLE 15 0 0 0 0 0;{BPM #151} 
+DL 0.25;{OD1 #152} 
+QUADRUPOLE 5 1.011 0;{QFA2 #153} 
+QUADRUPOLE 5 1.011 0;{QFA2 #154} 
+DL 0.25;{OD1 #155} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #156} 
+DL 0.25;{OD2 #157} 
+DL 2.2;{ORB #158} 
+DL 0.25;{OD2 #159} 
+DIPOLE 15 0 0 0 0 0;{BPM #160} 
+DL 0.25;{OD1 #161} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #162} 
+{=============================================}
+{****************************************************************}
+{===============2-d half of 1-th SS(b)================}
+QUADRUPOLE 5 -1.03 0;{QDA2 #163} 
+DL 0.25;{OD1 #164} 
+DL 0.15;{OSD #165} 
+DL 0.25;{OD2 #166} 
+DL 2.2;{ORB #167} 
+DL 0.25;{OD2 #168} 
+DIPOLE 15 0 0 0 0 0;{BPM #169} 
+DL 0.25;{OD1 #170} 
+QUADRUPOLE 5 1.011 0;{QFA2 #171} 
+QUADRUPOLE 5 1.011 0;{QFA2 #172} 
+DL 0.25;{OD1 #173} 
+DL 0.15;{OSF #174} 
+DL 0.25;{OD2 #175} 
+DL 2.2;{ORB #176} 
+DL 0.25;{OD2 #177} 
+DIPOLE 15 0 0 0 0 0;{BPM #178} 
+DL 0.25;{OD1 #179} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #180} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #181} 
+DL 0.25;{OD1 #182} 
+DL 0.15;{OSD #183} 
+DL 0.25;{OD2 #184} 
+DL 2.2;{ORB #185} 
+DL 0.25;{OD2 #186} 
+DIPOLE 15 0 0 0 0 0;{BPM #187} 
+DL 0.25;{OD1 #188} 
+QUADRUPOLE 5 1.011 0;{QFA2 #189} 
+{==============2-d half of 1-th MS arc===============}
+QUADRUPOLE 5 1.338 0;{QFA1 #190} 
+DL 0.25;{OD1 #191} 
+DL 0.15;{OSF #192} 
+DL 0.25;{OD2 #193} 
+DIPOLE Lbm Bfld 0 0 0 0;{BDA #194} 
+DL 0.25;{OD2 #195} 
+DIPOLE 15 0 0 0 0 0;{BPM #196} 
+DL 0.25;{OD1 #197} 
+QUADRUPOLE 5 -1.171 0;{QDA1 #198} 
+QUADRUPOLE 5 -1.171 0;{QDA1 #199} 
+DL 0.25;{OD1 #200} 
+SEXTUPOLE2 0.15 GSDP 0;{SDP #201} 
+DL 0.25;{OD2 #202} 
+DIPOLE Lbm Bfld 0 0 0 0;{BDA #203} 
+DL 0.25;{OD2 #204} 
+DIPOLE 15 0 0 0 0 0;{BPM #205} 
+DL 0.25;{OD1 #206} 
+QUADRUPOLE 5 1.338 0;{QFA1 #207} 
+{==========1-th half of 1-th ES arc===================}
+QUADRUPOLE 5 1.011 0;{QFA2 #208} 
+DL 0.25;{OD1 #209} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #210} 
+DL 0.25;{OD2 #211} 
+WIEN Lplate BsskGs Esm; {R3#212} 
+DL 0.25;{OD2 #213} 
+DIPOLE 15 0 0 0 0 0;{BPM #214} 
+DL 0.25;{OD1 #215} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #216} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #217} 
+DL 0.25;{OD1 #218} 
+SEXTUPOLE2 0.15 GSDP 0;{SDP #219} 
+DL 0.25;{OD2 #220} 
+WIEN Lplate BsskGs Esm; {R3#221} 
+DL 0.25;{OD2 #222} 
+DIPOLE 15 0 0 0 0 0;{BPM #223} 
+DL 0.25;{OD1 #224} 
+QUADRUPOLE 5 1.011 0;{QFA2 #225} 
+QUADRUPOLE 5 1.011 0;{QFA2 #226} 
+DL 0.25;{OD1 #227} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #228} 
+DL 0.25;{OD2 #229} 
+WIEN Lplate BsskGs Esm; {R3#230} 
+DL 0.25;{OD2 #231} 
+DIPOLE 15 0 0 0 0 0;{BPM #232} 
+DL 0.25;{OD1 #233} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #234} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #235} 
+DL 0.25;{OD1 #236} 
+SEXTUPOLE2 0.15 GSDN 0;{SDN  #237} 
+DL 0.25;{OD2 #238} 
+WIEN Lplate BsskGs Esm; {R3#239} 
+DL 0.25;{OD2 #240} 
+DIPOLE 15 0 0 0 0 0;{BPM #241} 
+DL 0.25;{OD1 #242} 
+QUADRUPOLE 5 1.011 0;{QFA2 #243} 
+{==============1-th SS(e)========================}
+{QFA2  OD1 SFN OD2  ORE  OD2 BPM OD1   QDA2}
+{QDA2  OD1 SDN OD2  ORE OD2 BPM OD1  QFA2}
+{============2-d half of 1-th ES arc==================}
+QUADRUPOLE 5 1.011 0;{QFA2 #244} 
+DL 0.25;{OD1 #245} 
+SEXTUPOLE2 0.15 GSFN 0;{SFN #246} 
+DL 0.25;{OD2 #247} 
+WIEN Lplate BsskGs Esm; {R3#248} 
+DL 0.25;{OD2 #249} 
+DIPOLE 15 0 0 0 0 0;{BPM #250} 
+DL 0.25;{OD1 #251} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #252} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #253} 
+DL 0.25;{OD1 #254} 
+SEXTUPOLE2 0.15 GSDN 0;{SDN  #255} 
+DL 0.25;{OD2 #256} 
+WIEN Lplate BsskGs Esm; {R3#257} 
+DL 0.25;{OD2 #258} 
+DIPOLE 15 0 0 0 0 0;{BPM #259} 
+DL 0.25;{OD1 #260} 
+QUADRUPOLE 5 1.011 0;{QFA2 #261} 
+QUADRUPOLE 5 1.011 0;{QFA2 #262} 
+DL 0.25;{OD1 #263} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #264} 
+DL 0.25;{OD2 #265} 
+WIEN Lplate BsskGs Esm; {R3#266} 
+DL 0.25;{OD2 #267} 
+DIPOLE 15 0 0 0 0 0;{BPM #268} 
+DL 0.25;{OD1 #269} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #270} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #271} 
+DL 0.25;{OD1 #272} 
+SEXTUPOLE2 0.15 GSDP 0;{SDP #273} 
+DL 0.25;{OD2 #274} 
+WIEN Lplate BsskGs Esm; {R3#275} 
+DL 0.25;{OD2 #276} 
+DIPOLE 15 0 0 0 0 0;{BPM #277} 
+DL 0.25;{OD1 #278} 
+QUADRUPOLE 5 1.011 0;{QFA2 #279} 
+{==================1-th half of 2-d MS arc===========}
+QUADRUPOLE 5 1.338 0;{QFA1 #280} 
+DL 0.25;{OD1 #281} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #282} 
+DL 0.25;{OD2 #283} 
+DIPOLE Lbm Bfld 0 0 0 0;{BDA #284} 
+DL 0.25;{OD2 #285} 
+DIPOLE 15 0 0 0 0 0;{BPM #286} 
+DL 0.25;{OD1 #287} 
+QUADRUPOLE 5 -1.171 0;{QDA1 #288} 
+QUADRUPOLE 5 -1.171 0;{QDA1 #289} 
+DL 0.25;{OD1 #290} 
+SEXTUPOLE2 0.15 GSDP 0;{SDP #291} 
+DL 0.25;{OD2 #292} 
+DIPOLE Lbm Bfld 0 0 0 0;{BDA #293} 
+DL 0.25;{OD2 #294} 
+DIPOLE 15 0 0 0 0 0;{BPM #295} 
+DL 0.25;{OD1 #296} 
+QUADRUPOLE 5 1.338 0;{QFA1 #297} 
+{====================1-th half of 2-d SS(b)==========}
+QUADRUPOLE 5 1.011 0;{QFA2 #298} 
+DL 0.25;{OD1 #299} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #300} 
+DL 0.25;{OD2 #301} 
+DL 2.2;{ORB #302} 
+DL 0.25;{OD2 #303} 
+DIPOLE 15 0 0 0 0 0;{BPM #304} 
+DL 0.25;{OD1 #305} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #306} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #307} 
+DL 0.25;{OD1 #308} 
+SEXTUPOLE2 0.15 GSDP 0;{SDP #309} 
+DL 0.25;{OD2 #310} 
+DL 2.2;{ORB #311} 
+DL 0.25;{OD2 #312} 
+DIPOLE 15 0 0 0 0 0;{BPM #313} 
+DL 0.25;{OD1 #314} 
+QUADRUPOLE 5 1.011 0;{QFA2 #315} 
+QUADRUPOLE 5 1.011 0;{QFA2 #316} 
+DL 0.25;{OD1 #317} 
+SEXTUPOLE2 0.15 GSFP 0;{SFP #318} 
+DL 0.25;{OD2 #319} 
+DL 2.2;{ORB #320} 
+DL 0.25;{OD2 #321} 
+DIPOLE 15 0 0 0 0 0;{BPM #322} 
+DL 0.25;{OD1 #323} 
+QUADRUPOLE 5 -1.03 0;{QDA2 #324} 
+{EndLattice}
+{=============================================}
+
+  WHERE := '../../data/Eremey/EB/';
+  GROUTF '../../img/Eremey/EB/TR' 1;
+
+  CR; {initialize map, clear rays}
+  SET_RAYS;
+  { LOOP I 1 10; }
+  {   J := -9 + 2*(I-1); }
+  {   X := J*1e-3; }
+  {   D := J*1e-4; }
+  {   SR X 0 0 0 0 0 0 0 2; SSR 0 0 1; }
+  {   SR 0 0 0 0 0 D 0 0 3; SSR 0 0 1; }
+  { ENDLOOP; }
+
+  OPENF 7 WHERE&'PRAY.dat' 'REPLACE'; PRAY 7; CLOSEF 7;
+  OPENF 7 WHERE&'PSPI.dat' 'REPLACE'; PSPI 7; CLOSEF 7;
+  OPENF 8 WHERE&'TRPRAY.dat' 'REPLACE';
+  OPENF 9 WHERE&'TRPSPI.dat' 'REPLACE';
+  TRPRAY 8; TRPSPI 9;
+  TR 10000 100 -1 -3 1.2 1.2 0 0 -12;
+  CLOSEF 8; CLOSEF 9;
+
+  OPENF 10 WHERE&'MAP.dat' 'REPLACE';
+  PM 10; CLOSEF 10;
+  OPENF 10 WHERE&'SPNR.dat' 'REPLACE';
+  PSM 10; CLOSEF 10;
+
+
+
+endprocedure;
+run;
+end;
+

@@ -1,0 +1,8 @@
+Here I use lattice files from Eremey. RBE deflectors are represented by Wien-filters, sextupoles as sextupoles, etc. But the FS condition is not fukfilled as well as in the auto-generated files.
+
+I implemented the xs plane spin correction via rotation about the y axis.
+
+The original BNL file used WIEN2 and SEXTUPOLE2 elements, but WIEN2 (inhomogenous WF) doesn't allow Sy to grow to 1, and SEXTUPOLE2 (same as SEXTUPOLE, but sets the gradient a different value) didn't optimize gradients.
+
+SEXTUPOLE STRENGTHS OPTIMIZATION:
+I use MU from TSS, its Taylor expansion coefficients (sum of squares) before the variables X, Y, D, as the target function. Apparently, Coefficients before X, D cannot be simultaneously minimized --- get a warning in TSS of spin-orbit resonance after a number of iterations.

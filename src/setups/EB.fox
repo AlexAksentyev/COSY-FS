@@ -1,0 +1,754 @@
+INCLUDE 'bin/core/elements';
+
+FUNCTION ACCLEN DUMMY;
+  ACCLEN := 149.2067;
+ENDFUNCTION;
+
+PROCEDURE CW_SETUP GSX GSY GSD TILTS;
+
+  VARIABLE Lplate 1;
+  VARIABLE BsskGs 1;
+  VARIABLE Esm 1;
+  VARIABLE Lbm 1;
+  VARIABLE Bfld 1;
+
+  VARIABLE VRF 1 1 1;
+  VARIABLE FREQ 1;
+  VARIABLE RFFLAG 1;
+
+  { SETTING PARAMETERS }
+  Lplate := 361.527495;
+  BsskGs := .8243925397;
+  Esm := -120;
+  Lbm := 182.02876808;
+  Bfld := 15;
+  VRF(1, 1) := 1; {RF Voltage}
+  FREQ := 50 * REVFREQ(ACCLEN(1)); {RF Frequency}
+  IF VRF(1,1)#0; RFFLAG:=1; ENDIF; {Given a non-zero voltage, add an RF element below}
+
+  WRITE 6 '*********************************************';
+  WRITE 6 '*        QFS EB LATTICE 20 JULY 2015        *';
+  WRITE 6 '*********************************************';
+
+  UM;
+  {===============2-d half of 1-th SS(b)================}
+  {BeginLattice}
+  QUADRUPOLE 5 -1.03 0;{QDA2 #1} 
+  DL 0.25;{OD1 #2} 
+  DL 0.15;{OSD #3} 
+  DL 0.25;{OD2 #4} 
+  DL 2.2;{ORB #5} 
+  DL 0.25;{OD2 #6} 
+  DIPOLE 15 0 0 0 0 0;{BPM #7} 
+  DL 0.25;{OD1 #8} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #9} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #10} 
+  DL 0.25;{OD1 #11} 
+  DL 0.15;{OSF #12}
+  IF RFFLAG=1; RF VRF 0 FREQ 0 0.05; ENDIF; 
+  DL 0.25;{OD2 #13} 
+  DL 2.2;{ORB #14} 
+  DL 0.25;{OD2 #15} 
+  DIPOLE 15 0 0 0 0 0;{BPM #16} 
+  DL 0.25;{OD1 #17} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #18} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #19} 
+  DL 0.25;{OD1 #20} 
+  DL 0.15;{OSD #21} 
+  DL 0.25;{OD2 #22} 
+  DL 2.2;{ORB #23} 
+  DL 0.25;{OD2 #24} 
+  DIPOLE 15 0 0 0 0 0;{BPM #25} 
+  DL 0.25;{OD1 #26} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #27} 
+  {==============2-d half of 1-th MS arc===============}
+  QUADRUPOLE 5 1.338 0;{QFA1 #28} 
+  DL 0.25;{OD1 #29} 
+  DL 0.15;{OSF #30} 
+  DL 0.25;{OD2 #31} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|1;{BDA #32} 
+  DL 0.25;{OD2 #33} 
+  DIPOLE 15 0 0 0 0 0;{BPM #34} 
+  DL 0.25;{OD1 #35} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #36} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #37} 
+  DL 0.25;{OD1 #38} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #39} 
+  DL 0.25;{OD2 #40} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|2;{BDA #41} 
+  DL 0.25;{OD2 #42} 
+  DIPOLE 15 0 0 0 0 0;{BPM #43} 
+  DL 0.25;{OD1 #44} 
+  QUADRUPOLE 5 1.338 0;{QFA1 #45} 
+  {==========1-th half of 1-th ES arc===================}
+  QUADRUPOLE 5 1.011 0;{QFA2 #46} 
+  DL 0.25;{OD1 #47} 
+  SEXTUPOLE 0.15 GSD 0;{SFP #48} 
+  DL 0.25;{OD2 #49} 
+  WIEN Lplate BsskGs Esm 0; {R3#50}
+  DL 0.25;{OD2 #51} 
+  DIPOLE 15 0 0 0 0 0;{BPM #52} 
+  DL 0.25;{OD1 #53} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #54} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #55} 
+  DL 0.25;{OD1 #56} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #57} 
+  DL 0.25;{OD2 #58} 
+  WIEN Lplate BsskGs Esm 0; {R3#59} 
+  DL 0.25;{OD2 #60} 
+  DIPOLE 15 0 0 0 0 0;{BPM #61} 
+  DL 0.25;{OD1 #62} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #63} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #64} 
+  DL 0.25;{OD1 #65} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #66} 
+  DL 0.25;{OD2 #67} 
+  WIEN Lplate BsskGs Esm 0; {R3#68} 
+  DL 0.25;{OD2 #69} 
+  DIPOLE 15 0 0 0 0 0;{BPM #70} 
+  DL 0.25;{OD1 #71} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #72} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #73} 
+  DL 0.25;{OD1 #74} 
+  SEXTUPOLE 0.15 GSY 0;{SDN  #75} 
+  DL 0.25;{OD2 #76} 
+  WIEN Lplate BsskGs Esm 0; {R3#77} 
+  DL 0.25;{OD2 #78} 
+  DIPOLE 15 0 0 0 0 0;{BPM #79} 
+  DL 0.25;{OD1 #80} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #81} 
+  {============2-d half of 1-th ES arc==================}
+  QUADRUPOLE 5 1.011 0;{QFA2 #82} 
+  DL 0.25;{OD1 #83} 
+  SEXTUPOLE 0.15 GSX 0;{SFN #84} 
+  DL 0.25;{OD2 #85} 
+  WIEN Lplate BsskGs Esm 0; {R3#86} 
+  DL 0.25;{OD2 #87} 
+  DIPOLE 15 0 0 0 0 0;{BPM #88} 
+  DL 0.25;{OD1 #89} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #90} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #91} 
+  DL 0.25;{OD1 #92} 
+  SEXTUPOLE 0.15 GSY 0;{SDN  #93} 
+  DL 0.25;{OD2 #94} 
+  WIEN Lplate BsskGs Esm 0; {R3#95} 
+  DL 0.25;{OD2 #96} 
+  DIPOLE 15 0 0 0 0 0;{BPM #97} 
+  DL 0.25;{OD1 #98} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #99} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #100} 
+  DL 0.25;{OD1 #101} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #102} 
+  DL 0.25;{OD2 #103} 
+  WIEN Lplate BsskGs Esm 0; {R3#104} 
+  DL 0.25;{OD2 #105} 
+  DIPOLE 15 0 0 0 0 0;{BPM #106} 
+  DL 0.25;{OD1 #107} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #108} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #109} 
+  DL 0.25;{OD1 #110} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #111} 
+  DL 0.25;{OD2 #112} 
+  WIEN Lplate BsskGs Esm 0; {R3#113} 
+  DL 0.25;{OD2 #114} 
+  DIPOLE 15 0 0 0 0 0;{BPM #115} 
+  DL 0.25;{OD1 #116} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #117} 
+  {==================1-th half of 2-d MS arc===========}
+  QUADRUPOLE 5 1.338 0;{QFA1 #118} 
+  DL 0.25;{OD1 #119} 
+  SEXTUPOLE 0.15 GSD 0;{SFP #120} 
+  DL 0.25;{OD2 #121} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|3;{BDA #122} 
+  DL 0.25;{OD2 #123} 
+  DIPOLE 15 0 0 0 0 0;{BPM #124} 
+  DL 0.25;{OD1 #125} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #126} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #127} 
+  DL 0.25;{OD1 #128} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #129} 
+  DL 0.25;{OD2 #130} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|4;{BDA #131} 
+  DL 0.25;{OD2 #132} 
+  DIPOLE 15 0 0 0 0 0;{BPM #133} 
+  DL 0.25;{OD1 #134} 
+  QUADRUPOLE 5 1.338 0;{QFA1 #135} 
+  {====================1-th half of 2-d SS(b)==========}
+  QUADRUPOLE 5 1.011 0;{QFA2 #136} 
+  DL 0.25;{OD1 #137} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #138} 
+  DL 0.25;{OD2 #139} 
+  DL 2.2;{ORB #140} 
+  DL 0.25;{OD2 #141} 
+  DIPOLE 15 0 0 0 0 0;{BPM #142} 
+  DL 0.25;{OD1 #143} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #144} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #145} 
+  DL 0.25;{OD1 #146} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #147} 
+  DL 0.25;{OD2 #148} 
+  DL 2.2;{ORB #149} 
+  DL 0.25;{OD2 #150} 
+  DIPOLE 15 0 0 0 0 0;{BPM #151} 
+  DL 0.25;{OD1 #152} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #153} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #154} 
+  DL 0.25;{OD1 #155} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #156} 
+  DL 0.25;{OD2 #157} 
+  DL 2.2;{ORB #158} 
+  DL 0.25;{OD2 #159} 
+  DIPOLE 15 0 0 0 0 0;{BPM #160} 
+  DL 0.25;{OD1 #161} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #162} 
+  {=============================================}
+  {****************************************************************}
+  {===============2-d half of 1-th SS(b)================}
+  QUADRUPOLE 5 -1.03 0;{QDA2 #163} 
+  DL 0.25;{OD1 #164} 
+  DL 0.15;{OSD #165} 
+  DL 0.25;{OD2 #166} 
+  DL 2.2;{ORB #167} 
+  DL 0.25;{OD2 #168} 
+  DIPOLE 15 0 0 0 0 0;{BPM #169} 
+  DL 0.25;{OD1 #170} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #171} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #172} 
+  DL 0.25;{OD1 #173} 
+  DL 0.15;{OSF #174} 
+  DL 0.25;{OD2 #175} 
+  DL 2.2;{ORB #176} 
+  DL 0.25;{OD2 #177} 
+  DIPOLE 15 0 0 0 0 0;{BPM #178} 
+  DL 0.25;{OD1 #179} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #180} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #181} 
+  DL 0.25;{OD1 #182} 
+  DL 0.15;{OSD #183} 
+  DL 0.25;{OD2 #184} 
+  DL 2.2;{ORB #185} 
+  DL 0.25;{OD2 #186} 
+  DIPOLE 15 0 0 0 0 0;{BPM #187} 
+  DL 0.25;{OD1 #188} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #189} 
+  {==============2-d half of 1-th MS arc===============}
+  QUADRUPOLE 5 1.338 0;{QFA1 #190} 
+  DL 0.25;{OD1 #191} 
+  DL 0.15;{OSF #192} 
+  DL 0.25;{OD2 #193} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|5;{BDA #194} 
+  DL 0.25;{OD2 #195} 
+  DIPOLE 15 0 0 0 0 0;{BPM #196} 
+  DL 0.25;{OD1 #197} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #198} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #199} 
+  DL 0.25;{OD1 #200} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #201} 
+  DL 0.25;{OD2 #202} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|6;{BDA #203} 
+  DL 0.25;{OD2 #204} 
+  DIPOLE 15 0 0 0 0 0;{BPM #205} 
+  DL 0.25;{OD1 #206} 
+  QUADRUPOLE 5 1.338 0;{QFA1 #207} 
+  {==========1-th half of 1-th ES arc===================}
+  QUADRUPOLE 5 1.011 0;{QFA2 #208} 
+  DL 0.25;{OD1 #209} 
+  SEXTUPOLE 0.15 GSD 0;{SFP #210} 
+  DL 0.25;{OD2 #211} 
+  WIEN Lplate BsskGs Esm 0; {R3#212} 
+  DL 0.25;{OD2 #213} 
+  DIPOLE 15 0 0 0 0 0;{BPM #214} 
+  DL 0.25;{OD1 #215} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #216} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #217} 
+  DL 0.25;{OD1 #218} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #219} 
+  DL 0.25;{OD2 #220} 
+  WIEN Lplate BsskGs Esm 0; {R3#221} 
+  DL 0.25;{OD2 #222} 
+  DIPOLE 15 0 0 0 0 0;{BPM #223} 
+  DL 0.25;{OD1 #224} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #225} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #226} 
+  DL 0.25;{OD1 #227} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #228} 
+  DL 0.25;{OD2 #229} 
+  WIEN Lplate BsskGs Esm 0; {R3#230} 
+  DL 0.25;{OD2 #231} 
+  DIPOLE 15 0 0 0 0 0;{BPM #232} 
+  DL 0.25;{OD1 #233} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #234} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #235} 
+  DL 0.25;{OD1 #236} 
+  SEXTUPOLE 0.15 GSY 0;{SDN  #237} 
+  DL 0.25;{OD2 #238} 
+  WIEN Lplate BsskGs Esm 0; {R3#239} 
+  DL 0.25;{OD2 #240} 
+  DIPOLE 15 0 0 0 0 0;{BPM #241} 
+  DL 0.25;{OD1 #242} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #243} 
+  {============2-d half of 1-th ES arc==================}
+  QUADRUPOLE 5 1.011 0;{QFA2 #244} 
+  DL 0.25;{OD1 #245} 
+  SEXTUPOLE 0.15 GSX 0;{SFN #246} 
+  DL 0.25;{OD2 #247} 
+  WIEN Lplate BsskGs Esm 0; {R3#248} 
+  DL 0.25;{OD2 #249} 
+  DIPOLE 15 0 0 0 0 0;{BPM #250} 
+  DL 0.25;{OD1 #251} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #252} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #253} 
+  DL 0.25;{OD1 #254} 
+  SEXTUPOLE 0.15 GSY 0;{SDN  #255} 
+  DL 0.25;{OD2 #256} 
+  WIEN Lplate BsskGs Esm 0; {R3#257} 
+  DL 0.25;{OD2 #258} 
+  DIPOLE 15 0 0 0 0 0;{BPM #259} 
+  DL 0.25;{OD1 #260} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #261} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #262} 
+  DL 0.25;{OD1 #263} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #264} 
+  DL 0.25;{OD2 #265} 
+  WIEN Lplate BsskGs Esm 0; {R3#266} 
+  DL 0.25;{OD2 #267} 
+  DIPOLE 15 0 0 0 0 0;{BPM #268} 
+  DL 0.25;{OD1 #269} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #270} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #271} 
+  DL 0.25;{OD1 #272} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #273} 
+  DL 0.25;{OD2 #274} 
+  WIEN Lplate BsskGs Esm 0; {R3#275} 
+  DL 0.25;{OD2 #276} 
+  DIPOLE 15 0 0 0 0 0;{BPM #277} 
+  DL 0.25;{OD1 #278} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #279} 
+  {==================1-th half of 2-d MS arc===========}
+  QUADRUPOLE 5 1.338 0;{QFA1 #280} 
+  DL 0.25;{OD1 #281} 
+  SEXTUPOLE 0.15 GSD 0;{SFP #282} 
+  DL 0.25;{OD2 #283} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|7;{BDA #284} 
+  DL 0.25;{OD2 #285} 
+  DIPOLE 15 0 0 0 0 0;{BPM #286} 
+  DL 0.25;{OD1 #287} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #288} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #289} 
+  DL 0.25;{OD1 #290} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #291} 
+  DL 0.25;{OD2 #292} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|8;{BDA #293} 
+  DL 0.25;{OD2 #294} 
+  DIPOLE 15 0 0 0 0 0;{BPM #295} 
+  DL 0.25;{OD1 #296} 
+  QUADRUPOLE 5 1.338 0;{QFA1 #297} 
+  {====================1-th half of 2-d SS(b)==========}
+  QUADRUPOLE 5 1.011 0;{QFA2 #298} 
+  DL 0.25;{OD1 #299} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #300} 
+  DL 0.25;{OD2 #301} 
+  DL 2.2;{ORB #302} 
+  DL 0.25;{OD2 #303} 
+  DIPOLE 15 0 0 0 0 0;{BPM #304} 
+  DL 0.25;{OD1 #305} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #306} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #307} 
+  DL 0.25;{OD1 #308} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #309} 
+  DL 0.25;{OD2 #310} 
+  DL 2.2;{ORB #311} 
+  DL 0.25;{OD2 #312} 
+  DIPOLE 15 0 0 0 0 0;{BPM #313} 
+  DL 0.25;{OD1 #314} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #315} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #316} 
+  DL 0.25;{OD1 #317} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #318} 
+  DL 0.25;{OD2 #319} 
+  DL 2.2;{ORB #320} 
+  DL 0.25;{OD2 #321} 
+  DIPOLE 15 0 0 0 0 0;{BPM #322} 
+  DL 0.25;{OD1 #323} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #324} 
+  {EndLattice}
+  {=============================================}
+
+
+ENDPROCEDURE; { CW_SETUP }
+
+PROCEDURE CCW_SETUP GSX GSY GSD TILTS;
+
+  VARIABLE Lplate 1;
+  VARIABLE BsskGs 1;
+  VARIABLE Esm 1;
+  VARIABLE Lbm 1;
+  VARIABLE Bfld 1;
+
+  VARIABLE VRF 1 1 1;
+  VARIABLE FREQ 1;
+  VARIABLE RFFLAG 1;
+
+  { SETTING PARAMETERS }
+  Lplate := 361.527495;
+  BsskGs := .8243925397;
+  Esm := -120;
+  Lbm := 182.02876808;
+  Bfld := -15;
+  VRF(1, 1) := 1; {RF Voltage}
+  FREQ := 50 * REVFREQ(ACCLEN(1)); {RF Frequency}
+  IF VRF(1,1)#0; RFFLAG:=1; ENDIF; {Given a non-zero voltage, add an RF element below}
+
+  WRITE 6 '*********************************************';
+  WRITE 6 '*        QFS EB LATTICE 20 JULY 2015        *';
+  WRITE 6 '*********************************************';
+
+  UM;
+  {====================1-th half of 2-d SS(b)==========}
+  {BeginLattice}
+  QUADRUPOLE 5 -1.03 0;{QDA2 #324} 
+  DL 0.25;{OD1 #323} 
+  DIPOLE 15 0 0 0 0 0;{BPM #322} 
+  DL 0.25;{OD2 #321} 
+  DL 2.2;{ORB #320} 
+  DL 0.25;{OD2 #319} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #318} 
+  DL 0.25;{OD1 #317} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #316} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #315} 
+  DL 0.25;{OD1 #314} 
+  DIPOLE 15 0 0 0 0 0;{BPM #313} 
+  DL 0.25;{OD2 #312} 
+  DL 2.2;{ORB #311} 
+  DL 0.25;{OD2 #310} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #309} 
+  DL 0.25;{OD1 #308}
+  QUADRUPOLE 5 -1.03 0;{QDA2 #307} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #306}
+  DL 0.25;{OD1 #305} 
+  DIPOLE 15 0 0 0 0 0;{BPM #304} 
+  DL 0.25;{OD2 #303}
+  DL 2.2;{ORB #302} 
+  DL 0.25;{OD2 #301} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #300} 
+  DL 0.25;{OD1 #299} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #298} 
+  {==================1-th half of 2-d MS arc===========}
+  QUADRUPOLE 5 1.338 0;{QFA1 #297} 
+  DL 0.25;{OD1 #296} 
+  DIPOLE 15 0 0 0 0 0;{BPM #295} 
+  DL 0.25;{OD2 #294}  
+  DIPOLE Lbm Bfld 0 0 0 TILTS|1;{BDA #293} 
+  DL 0.25;{OD2 #292} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #291} 
+  DL 0.25;{OD1 #290} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #289} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #288}
+  DL 0.25;{OD1 #287}  
+  DIPOLE 15 0 0 0 0 0;{BPM #286}
+  DL 0.25;{OD2 #285} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|2;{BDA #284} 
+  DL 0.25;{OD2 #283}
+  SEXTUPOLE 0.15 GSD 0;{SFP #282} 
+  DL 0.25;{OD1 #281}
+  QUADRUPOLE 5 1.338 0;{QFA1 #280}
+  {==========1-th half of 1-th ES arc===================}
+  QUADRUPOLE 5 1.011 0;{QFA2 #279} 
+  DL 0.25;{OD1 #278} 
+  DIPOLE 15 0 0 0 0 0;{BPM #277} 
+  DL 0.25;{OD2 #276}
+  WIEN Lplate BsskGs Esm 0; {R3#275} 
+  DL 0.25;{OD2 #274}
+  SEXTUPOLE 0.15 GSY 0;{SDP #273} 
+  DL 0.25;{OD1 #272}
+  QUADRUPOLE 5 -1.03 0;{QDA2 #271} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #270} 
+  DL 0.25;{OD1 #269}
+  DIPOLE 15 0 0 0 0 0;{BPM #268}
+  DL 0.25;{OD2 #267}
+  WIEN Lplate BsskGs Esm 0; {R3#266}
+  DL 0.25;{OD2 #265}
+  SEXTUPOLE 0.15 GSX 0;{SFP #264} 
+  DL 0.25;{OD1 #263}
+  QUADRUPOLE 5 1.011 0;{QFA2 #262} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #261} 
+  DL 0.25;{OD1 #260}
+  DIPOLE 15 0 0 0 0 0;{BPM #259} 
+  DL 0.25;{OD2 #258} 
+  WIEN Lplate BsskGs Esm 0; {R3#257} 
+  DL 0.25;{OD2 #256}
+  SEXTUPOLE 0.15 GSY 0;{SDN  #255} 
+  DL 0.25;{OD1 #254}
+  QUADRUPOLE 5 -1.03 0;{QDA2 #253} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #252} 
+  DL 0.25;{OD1 #251} 
+  DIPOLE 15 0 0 0 0 0;{BPM #250} 
+  DL 0.25;{OD2 #249}
+  WIEN Lplate BsskGs Esm 0; {R3#248} 
+  DL 0.25;{OD2 #247}
+  SEXTUPOLE 0.15 GSX 0;{SFN #246} 
+  DL 0.25;{OD1 #245}
+  QUADRUPOLE 5 1.011 0;{QFA2 #244}
+  {============2-d half of 1-th ES arc==================}
+  QUADRUPOLE 5 1.011 0;{QFA2 #243} 
+  DL 0.25;{OD1 #242} 
+  DIPOLE 15 0 0 0 0 0;{BPM #241} 
+  DL 0.25;{OD2 #240}
+  WIEN Lplate BsskGs Esm 0; {R3#239} 
+  DL 0.25;{OD2 #238}
+  SEXTUPOLE 0.15 GSY 0;{SDN  #237} 
+  DL 0.25;{OD1 #236}
+  QUADRUPOLE 5 -1.03 0;{QDA2 #235} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #234} 
+  DL 0.25;{OD1 #233} 
+  DIPOLE 15 0 0 0 0 0;{BPM #232} 
+  DL 0.25;{OD2 #231}
+  WIEN Lplate BsskGs Esm 0; {R3#230} 
+  DL 0.25;{OD2 #229}
+  SEXTUPOLE 0.15 GSX 0;{SFP #228} 
+  DL 0.25;{OD1 #227}
+  QUADRUPOLE 5 1.011 0;{QFA2 #226} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #225} 
+  DL 0.25;{OD1 #224} 
+  DIPOLE 15 0 0 0 0 0;{BPM #223} 
+  DL 0.25;{OD2 #222} 
+  WIEN Lplate BsskGs Esm 0; {R3#221} 
+  DL 0.25;{OD2 #220} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #219} 
+  DL 0.25;{OD1 #218} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #217} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #216} 
+  DL 0.25;{OD1 #215} 
+  DIPOLE 15 0 0 0 0 0;{BPM #214} 
+  DL 0.25;{OD2 #213} 
+  WIEN Lplate BsskGs Esm 0; {R3#212} 
+  DL 0.25;{OD2 #211} 
+  SEXTUPOLE 0.15 GSD 0;{SFP #210} 
+  DL 0.25;{OD1 #209} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #208}
+  {==========1-th half of 1-th ES arc===================}
+  QUADRUPOLE 5 1.338 0;{QFA1 #207} 
+  DL 0.25;{OD1 #206} 
+  DIPOLE 15 0 0 0 0 0;{BPM #205} 
+  DL 0.25;{OD2 #204} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|3;{BDA #203} 
+  DL 0.25;{OD2 #202} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #201} 
+  DL 0.25;{OD1 #200} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #199} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #198} 
+  DL 0.25;{OD1 #197} 
+  DIPOLE 15 0 0 0 0 0;{BPM #196} 
+  DL 0.25;{OD2 #195} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|4;{BDA #194} 
+  DL 0.25;{OD2 #193} 
+  DL 0.15;{OSF #192} 
+  DL 0.25;{OD1 #191} 
+  QUADRUPOLE 5 1.338 0;{QFA1 #190}
+  {==============2-d half of 1-th MS arc===============}
+  QUADRUPOLE 5 1.011 0;{QFA2 #189} 
+  DL 0.25;{OD1 #188} 
+  DIPOLE 15 0 0 0 0 0;{BPM #187} 
+  DL 0.25;{OD2 #186} 
+  DL 2.2;{ORB #185} 
+  DL 0.25;{OD2 #184} 
+  DL 0.15;{OSD #183}
+  DL 0.25;{OD1 #182} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #181} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #180} 
+  DL 0.25;{OD1 #179} 
+  DIPOLE 15 0 0 0 0 0;{BPM #178} 
+  DL 0.25;{OD2 #177} 
+  DL 2.2;{ORB #176} 
+  DL 0.25;{OD2 #175} 
+  DL 0.15;{OSF #174}
+  DL 0.25;{OD1 #173} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #172} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #171} 
+  DL 0.25;{OD1 #170} 
+  DIPOLE 15 0 0 0 0 0;{BPM #169} 
+  DL 0.25;{OD2 #168} 
+  DL 2.2;{ORB #167} 
+  DL 0.25;{OD2 #166} 
+  DL 0.15;{OSD #165}
+  DL 0.25;{OD1 #164} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #163}
+  {=============================================}
+  {****************************************************************}
+  {===============2-d half of 1-th SS(b)================}
+  QUADRUPOLE 5 -1.03 0;{QDA2 #162}
+  DL 0.25;{OD1 #161} 
+  DIPOLE 15 0 0 0 0 0;{BPM #160}  
+  DL 0.25;{OD2 #159} 
+  DL 2.2;{ORB #158}  
+  DL 0.25;{OD2 #157}
+  SEXTUPOLE 0.15 GSX 0;{SFP #156} 
+  DL 0.25;{OD1 #155} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #154} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #153} 
+  DL 0.25;{OD1 #152} 
+  DIPOLE 15 0 0 0 0 0;{BPM #151}  
+  DL 0.25;{OD2 #150} 
+  DL 2.2;{ORB #149}  
+  DL 0.25;{OD2 #148}
+  SEXTUPOLE 0.15 GSY 0;{SDP #147} 
+  DL 0.25;{OD1 #146} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #145} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #144} 
+  DL 0.25;{OD1 #143} 
+  DIPOLE 15 0 0 0 0 0;{BPM #142}  
+  DL 0.25;{OD2 #141} 
+  DL 2.2;{ORB #140}  
+  DL 0.25;{OD2 #139}
+  SEXTUPOLE 0.15 GSX 0;{SFP #138} 
+  DL 0.25;{OD1 #137} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #136}
+  {====================1-th half of 2-d SS(b)==========}
+  QUADRUPOLE 5 1.338 0;{QFA1 #135} 
+  DL 0.25;{OD1 #134} 
+  DIPOLE 15 0 0 0 0 0;{BPM #133} 
+  DL 0.25;{OD2 #132} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|5;{BDA #131} 
+  DL 0.25;{OD2 #130} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #129} 
+  DL 0.25;{OD1 #128} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #127} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #126} 
+  DL 0.25;{OD1 #125} 
+  DIPOLE 15 0 0 0 0 0;{BPM #124} 
+  DL 0.25;{OD2 #123} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|6;{BDA #122} 
+  DL 0.25;{OD2 #121} 
+  SEXTUPOLE 0.15 GSD 0;{SFP #120} 
+  DL 0.25;{OD1 #119} 
+  QUADRUPOLE 5 1.338 0;{QFA1 #118}
+  {==================1-th half of 2-d MS arc===========}
+  QUADRUPOLE 5 1.011 0;{QFA2 #117} 
+  DL 0.25;{OD1 #116} 
+  DIPOLE 15 0 0 0 0 0;{BPM #115} 
+  DL 0.25;{OD2 #114} 
+  WIEN Lplate BsskGs Esm 0; {R3#113} 
+  DL 0.25;{OD2 #112} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #111} 
+  DL 0.25;{OD1 #110} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #109} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #108} 
+  DL 0.25;{OD1 #107} 
+  DIPOLE 15 0 0 0 0 0;{BPM #106} 
+  DL 0.25;{OD2 #105} 
+  WIEN Lplate BsskGs Esm 0; {R3#104} 
+  DL 0.25;{OD2 #103} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #102} 
+  DL 0.25;{OD1 #101} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #100} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #99} 
+  DL 0.25;{OD1 #98} 
+  DIPOLE 15 0 0 0 0 0;{BPM #97}  
+  DL 0.25;{OD2 #96} 
+  WIEN Lplate BsskGs Esm 0; {R3#95}  
+  DL 0.25;{OD2 #94} 
+  SEXTUPOLE 0.15 GSY 0;{SDN  #93}  
+  DL 0.25;{OD1 #92} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #91} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #90} 
+  DL 0.25;{OD1 #89} 
+  DIPOLE 15 0 0 0 0 0;{BPM #88}  
+  DL 0.25;{OD2 #87} 
+  WIEN Lplate BsskGs Esm 0; {R3#86}  
+  DL 0.25;{OD2 #85} 
+  SEXTUPOLE 0.15 GSX 0;{SFN #84}  
+  DL 0.25;{OD1 #83} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #82}
+  {============2-d half of 1-th ES arc==================}
+  QUADRUPOLE 5 1.011 0;{QFA2 #81} 
+  DL 0.25;{OD1 #80} 
+  DIPOLE 15 0 0 0 0 0;{BPM #79}  
+  DL 0.25;{OD2 #78} 
+  WIEN Lplate BsskGs Esm 0; {R3#77}  
+  DL 0.25;{OD2 #76} 
+  SEXTUPOLE 0.15 GSY 0;{SDN  #75}  
+  DL 0.25;{OD1 #74} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #73} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #72} 
+  DL 0.25;{OD1 #71} 
+  DIPOLE 15 0 0 0 0 0;{BPM #70}  
+  DL 0.25;{OD2 #69} 
+  WIEN Lplate BsskGs Esm 0; {R3#68}  
+  DL 0.25;{OD2 #67} 
+  SEXTUPOLE 0.15 GSX 0;{SFP #66} 
+  DL 0.25;{OD1 #65} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #64} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #63} 
+  DL 0.25;{OD1 #62} 
+  DIPOLE 15 0 0 0 0 0;{BPM #61} 
+  DL 0.25;{OD2 #60} 
+  WIEN Lplate BsskGs Esm 0; {R3#59} 
+  DL 0.25;{OD2 #58} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #57}  
+  DL 0.25;{OD1 #56} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #55} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #54} 
+  DL 0.25;{OD1 #53} 
+  DIPOLE 15 0 0 0 0 0;{BPM #52}  
+  DL 0.25;{OD2 #51} 
+  WIEN Lplate BsskGs Esm 0; {R3#50} 
+  DL 0.25;{OD2 #49} 
+  SEXTUPOLE 0.15 GSD 0;{SFP #48}  
+  DL 0.25;{OD1 #47} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #46}
+  {==============2-d half of 1-th MS arc===============}
+  QUADRUPOLE 5 1.338 0;{QFA1 #45} 
+  DL 0.25;{OD1 #44} 
+  DIPOLE 15 0 0 0 0 0;{BPM #43}  
+  DL 0.25;{OD2 #42} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|7;{BDA #41}  
+  DL 0.25;{OD2 #40} 
+  SEXTUPOLE 0.15 GSY 0;{SDP #39} 
+  DL 0.25;{OD1 #38} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #37} 
+  QUADRUPOLE 5 -1.171 0;{QDA1 #36} 
+  DL 0.25;{OD1 #35} 
+  DIPOLE 15 0 0 0 0 0;{BPM #34} 
+  DL 0.25;{OD2 #33} 
+  DIPOLE Lbm Bfld 0 0 0 TILTS|8;{BDA #32} 
+  DL 0.25;{OD2 #31} 
+  DL 0.15;{OSF #30}
+  DL 0.25;{OD1 #29} 
+  QUADRUPOLE 5 1.338 0;{QFA1 #28} 
+  {===============2-d half of 1-th SS(b)================}
+  QUADRUPOLE 5 1.011 0;{QFA2 #27} 
+  DL 0.25;{OD1 #26} 
+  DIPOLE 15 0 0 0 0 0;{BPM #25} 
+  DL 0.25;{OD2 #24} 
+  DL 2.2;{ORB #23} 
+  DL 0.25;{OD2 #22}  
+  DL 0.15;{OSD #21} 
+  DL 0.25;{OD1 #20} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #19}  
+  QUADRUPOLE 5 -1.03 0;{QDA2 #18} 
+  DL 0.25;{OD1 #17} 
+  DIPOLE 15 0 0 0 0 0;{BPM #16} 
+  DL 0.25;{OD2 #15} 
+  DL 2.2;{ORB #14} 
+  DL 0.25;{OD2 #13} 
+  IF RFFLAG=1; RF VRF 0 FREQ 0 0.05; ENDIF; 
+  DL 0.15;{OSF #12}
+  DL 0.25;{OD1 #11} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #10} 
+  QUADRUPOLE 5 1.011 0;{QFA2 #9} 
+  DL 0.25;{OD1 #8} 
+  DIPOLE 15 0 0 0 0 0;{BPM #7} 
+  DL 0.25;{OD2 #6} 
+  DL 2.2;{ORB #5} 
+  DL 0.25;{OD2 #4} 
+  DL 0.15;{OSD #3} 
+  DL 0.25;{OD1 #2} 
+  QUADRUPOLE 5 -1.03 0;{QDA2 #1} 
+  {EndLattice}
+  {=============================================}
+
+
+ENDPROCEDURE; { CCW_SETUP }
+
+
+SAVE 'bin/setups/EB';

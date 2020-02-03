@@ -1,0 +1,766 @@
+include '../../bin/COSY';
+procedure run;
+
+VARIABLE PI 1;
+VARIABLE E 1;
+VARIABLE electron_mass 1;
+VARIABLE Mp 1;
+VARIABLE Mmu 1;
+VARIABLE c 1;
+VARIABLE Pc 1;
+VARIABLE Md 1;
+VARIABLE gamma 1;
+VARIABLE En 1;
+VARIABLE Mdeu 1;
+VARIABLE Qp 1;
+VARIABLE Q 1;
+VARIABLE beta 1;
+VARIABLE G 1;
+VARIABLE K 1;
+VARIABLE alfa 1;
+VARIABLE FIelectr 1;
+VARIABLE FImagn 1;
+VARIABLE FIspin_el 1;
+VARIABLE FIspin_magn 1;
+VARIABLE RE 1;
+VARIABLE Rig 1;
+VARIABLE Rigcm 1;
+VARIABLE Ebp 1;
+VARIABLE Eplate 1;
+VARIABLE Rbp 1;
+VARIABLE Rplate 1;
+VARIABLE Nplate 1;
+VARIABLE Lbp 1;
+VARIABLE Lplate 1;
+VARIABLE Bfield 1;
+VARIABLE Rb 1;
+VARIABLE Nb 1;
+VARIABLE Lbm 1;
+VARIABLE COSYMU 100 3;
+
+VARIABLE NS 1;
+VARIABLE N1 1;
+VARIABLE N2 1;
+VARIABLE N3 1;
+VARIABLE N4 1;
+VARIABLE N5 1;
+
+VARIABLE A0 1;
+VARIABLE A1 1;
+VARIABLE A2 1;
+VARIABLE A3 1;
+VARIABLE A4 1;
+VARIABLE A5 1;
+
+VARIABLE GSFP1 1;
+VARIABLE GSFP2 1;
+VARIABLE GSDP1 1;
+VARIABLE GSDP2 1;
+VARIABLE GSFN1 1;
+VARIABLE GSDN1 1;
+VARIABLE GSDN2 1;
+VARIABLE DELTA 1;
+
+VARIABLE NURF 1;
+VARIABLE VRF 1 1 1;
+VARIABLE RFFLAG 1;
+
+VARIABLE ORDER 1;
+VARIABLE FRMODE 1;
+
+procedure rotate phi;
+variable M 1000 4;
+variable i 1;
+M(1):=COS(PHI*DEGRAD)*MAP(1)+SIN(PHI*DEGRAD)*MAP(3);
+M(3):=-SIN(PHI*DEGRAD)*MAP(1)+COS(PHI*DEGRAD)*MAP(3);
+M(2):=COS(PHI*DEGRAD)*MAP(2)+SIN(PHI*DEGRAD)*MAP(4);
+M(4):=-SIN(PHI*DEGRAD)*MAP(2)+COS(PHI*DEGRAD)*MAP(4);
+LOOP i 1 4;
+  MAP(i):=M(i);
+ENDLOOP;
+endprocedure;
+
+PROCEDURE DIPOLE L B G ANGLE1 ANGLE2 TILT;
+VARIABLE B0 1;
+VARIABLE L0 1;
+VARIABLE G0 1;
+VARIABLE TILT0 1;
+VARIABLE NT 1;
+VARIABLE KN 1 1;
+VARIABLE S1 1 1;
+VARIABLE S2 1 1;
+VARIABLE R 1;
+VARIABLE PHI 1;
+
+NT:=1;
+L0:=L/100;{in meters}
+IF (B=0);
+  DL L0;
+ELSEIF TRUE;
+  B0:=ABS(B)/10;{in Tesla}
+  G0:=G*10;{in T/m}
+  R:=CONS(P0)/(CLIGHT*1e-6)/B0;
+  KN(1):=G0/R/B0;
+  S1(1):=ANGLE1*DEGRAD;
+  S2(1):=ANGLE2*DEGRAD;
+  PHI:=L0/R/DEGRAD;
+  TILT0:=TILT;
+  ROTATE TILT0;
+  IF (B<0);
+    CB;
+  ENDIF;
+  {DI R PHI 0.05 0 0 0 0;}
+  {WRITE 6 'DI' L0 PHI;}
+  MCLK L0 PHI 0.05 KN S1 S2 NT;
+  IF (B<0);
+    CB;
+  ENDIF;
+  ROTATE -TILT0;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE SEPARATOR L B TILT;
+VARIABLE B0 1;
+VARIABLE L0 1;
+VARIABLE R 1;
+VARIABLE PHI 1;
+L0:=L/100;{in meters}
+IF (B=0);
+  DL L0;
+ELSEIF TRUE;
+  R:=CONS(CHIE)/ABS(B)/1e5;
+  PHI:=L0/R/DEGRAD;
+  IF (B<0);
+    CB;
+  ENDIF;
+  ES R PHI 0.05 N1 N2 N3 N4 N5; {Electrostatic bending element}
+  IF (B<0);
+    CB;
+  ENDIF;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE QUADRUPOLE L G TILT;
+VARIABLE L0 1;
+VARIABLE G0 1;
+VARIABLE TILT0 1;
+
+L0:=L/100;{in meters}
+IF (G=0);
+  DL L0;
+ELSEIF (1=1);
+  G0:=G*10;{in Tesla/m}
+  TILT0:=TILT;
+  ROTATE TILT0;
+  MQ L0 G0*0.05 0.05; {Magnetic quadrupole}
+  {WRITE 6 'MQ' L0 G0*0.05;}
+  ROTATE -TILT0;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE SEXTUPOLE L S Tilt;
+VARIABLE L0 1;
+VARIABLE S0 1;
+
+L0:=L;{in meters}
+IF (S=0);
+  DL L0;
+ELSEIF (1=1);
+  S0:=S*1000;{in kV/m}
+  MH L0 S0*0.05*0.05 0.05;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE SEXTUPOLE1 L S Tilt;
+VARIABLE L0 1;
+VARIABLE S0 1;
+
+L0:=L/100;{in meters}
+IF (S=0);
+  DL L0;
+ELSEIF (1=1);
+  S0:=S/2;
+  MH L0 S0 0.05;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE SEXTUPOLE2 L S Tilt;
+VARIABLE L0 1;
+VARIABLE S0 1;
+L0:=L;
+IF (S=0);
+  DL L0;
+ELSEIF (1=1);
+  S0:=S*CONS(CHIM)*0.05*0.05;
+  MH L0 S0 0.05;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE M_ELEMENT m B TILT;
+VARIABLE B0 1;
+VARIABLE TILT0 1;
+
+IF (B#0);
+  IF (m=1);
+    TILT0:=TILT;
+    ROTATE TILT0;
+    B0:=B/10;{in Tesla}
+    MQ 1e-6 (B0/1E-6)*0.05 0.05;
+    DL -1e-6;
+    ROTATE -TILT0;
+  ENDIF;
+  IF (m=2);
+    TILT0:=TILT;
+    ROTATE TILT0;
+    B0:=B*10;{in Tesla/m}
+    MH 1e-6 (B0/1E-6)*0.05*0.05 0.05;
+    DL -1e-6;
+    ROTATE -TILT0;
+  ENDIF;
+  IF (m=3);
+    TILT0:=TILT;
+    ROTATE TILT0;
+    B0:=B*1000;{in Tesla/m}
+    MO 1e-6 (B0/1E-6)*0.05*0.05*0.05 0.05;
+    DL -1e-6;
+    ROTATE -TILT0;
+  ENDIF;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE SOLENOID L B A;
+VARIABLE L0 1;
+VARIABLE B0 1;
+VARIABLE A0 1;
+
+L0:=L/100;{in meters}
+B0:=B/10;{in T/m}
+IF (A=0);
+  CMSP B0 0.05 10000 (10000-L0)/2 (10000+L0)/2;
+ELSEIF (1=1);
+  A0:=A/100;{in T/m}
+  CMS B0 A0 L0;
+ENDIF;
+ENDPROCEDURE;
+
+PROCEDURE PARAMS Delta Eplate Lplate Bfield Lbm;
+PI:=3.1415926535897932385;
+E:=2.7182818284590452354;
+electron_mass:=0.510998910;
+Mp:=938.272046;
+c:=299792458e2;
+{Deutron Momentum in [MeV/c]}
+Pc:=1042.24;
+{-----------------------------------}
+{deutron mass in [MeV]}
+Md:=2*Mp;
+{----------------------------------}
+{Lorentz factor}
+gamma:=sqrt(Pc*Pc/Md/Md+1);
+{----------------------------------}
+{energy in [MeV]}
+En:=Md*(gamma-1);
+{----------------------------------}
+{deutron mass in  [kG]}
+Mdeu:=2*1.6726e-27;
+{----------------------------------}
+{el  charge in [C]}
+Qp:=EZERO;
+Q:=1*Qp;
+{----------------------------------}
+{relative velocity}
+beta:=sqrt(1-1/gamma/gamma);
+{---------------------------------}
+{anomalous magnetic moment of Deuteron}
+G:=-0.142987;
+{--------------------------------}
+{ratio between spin tunes in E and B parts of ring}
+K:=gamma*beta*beta*(1./(gamma*gamma-1.)-G)/(-gamma*G);
+{----------------------------------}
+{half of momentum turn in electrostatic part of ring in [rad]}
+alfa:=0.5*pi/(K-1.)+Delta;
+{---------------------------------}
+{turn of beam in electric part of ring in [rad]}
+FIelectr:=2*alfa;
+{--------------------------------}
+{momentum turn in magnetostatic part of ring in [rad]}
+FImagn:=pi+2*alfa;
+{----------------------------------}
+{spin turn in electrostatic part of ring in [rad]}
+FIspin_el:=FIelectr*(1./(gamma*gamma-1.)-G)*gamma*beta*beta;
+{----------------------------------}
+{spin turn in magnetostatic part of ring in [rad]}
+FIspin_magn:=FImagn*gamma*G;
+
+
+{---------------------------------}
+{Rigidity R*E calculation in [m V/m]}
+RE:=CONS(CHIE);
+{----------------------------------}
+{Rigidity BR in [Tm]}
+Rig:=RE/beta/c*100;
+{Rigidity BR in [kG*cm]}
+Rigcm:=Rig*1000;
+
+{---------------------------------}
+{Field between the bend plates [V/m]}
+Ebp:=12.0e6;
+{in [kV/cm]}
+Eplate:=Ebp/1.e5;
+{---------------------------------}
+{Radius of bend plates in [m]}
+Rbp:=RE/Ebp*1;
+{in [cm]}
+Rplate:=Rbp*100;
+{------------------------------------------}
+{number deflectors on one straight section}
+Nplate:=8.;
+{length of one deflector in [m]}
+Lbp:=FIelectr*Rbp/Nplate;
+{length of one deflector in [cm]}
+Lplate:=Lbp*100;
+
+{----------------------EDM magnet-----------------------------}
+{Magnetic field in kG}
+Bfield:=15.;
+{Radius of magnet curvature in cm}
+Rb:=Rigcm/Bfield;
+{Number of magnets on one arc}
+Nb:=4;
+{Length of one bend magnet  in cm}
+Lbm:=FImagn*Rb/Nb;
+
+Eplate:=-Eplate;
+ENDPROCEDURE;
+
+N1:=1;
+N2:=-1;
+N3:=1;
+N4:=-1;
+N5:=1;
+
+A0:=1.066717916109775;
+A1:=1.6215939887044952;
+A2:=-0.9713991696899339;
+A3:=0.466860288912587;
+A4:=-0.11809443899423651;
+A5:=0.011332163947410089;
+
+GSFP1:=0;
+GSFP2:=0;
+GSDP1:=0;
+GSDP2:=0;
+GSFN1:=0;
+GSDN1:=0;
+GSDN2:=0;
+
+ORDER:=7;
+FRMODE:=0;
+
+RFFLAG:=1;
+VRF(1,1):=100;
+NURF:=873347.508*5;
+
+Mp:=938.272046;
+Pc:=1042.24;
+Md:=2*Mp;
+gamma:=sqrt(Pc*Pc/Md/Md+1);
+En:=Md*(gamma-1);
+OV ORDER 3 0; 
+RP En 1876.5592/AMUMEV 1;
+RPS 1 -0.142987;
+SB .01 .01 0 .01 .01 0 .01 .01 0 0 0;
+FR FRMODE;
+
+PARAMS Delta Eplate Lplate Bfield Lbm;
+
+UM;
+FC 1 1 2 A0 A1 A2 A3 A4 A5;
+FC 1 2 2 A0 A1 A2 A3 A4 A5;
+{===============2-d half of 1-th SS(b)================}
+{BeginLattice}
+QUADRUPOLE 5 -0.86 0;{QDA2 #1} 
+DL 0.25;{OD1 #2} 
+DL 0.15;{OSD #3} 
+DL 0.25;{OD2 #4} 
+DL 2.2;{ORB #5} 
+DL 0.25;{OD2 #6} 
+DIPOLE 15 0 0 0 0 0;{BPM #7} 
+DL 0.25;{OD1 #8} 
+QUADRUPOLE 5 0.831 0;{QFA2 #9} 
+QUADRUPOLE 5 0.831 0;{QFA2 #10} 
+DL 0.25;{OD1 #11} 
+DL 0.15;{OSF #12} 
+DL 0.25;{OD2 #13} 
+DL 2.2;{ORB #14} 
+DL 0.25;{OD2 #15} 
+DIPOLE 15 0 0 0 0 0;{BPM #16} 
+DL 0.25;{OD1 #17} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #18} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #19} 
+DL 0.25;{OD1 #20} 
+DL 0.15;{OSD #21} 
+DL 0.25;{OD2 #22} 
+DL 2.2;{ORB #23} 
+DL 0.25;{OD2 #24} 
+DIPOLE 15 0 0 0 0 0;{BPM #25} 
+DL 0.25;{OD1 #26} 
+QUADRUPOLE 5 0.831 0;{QFA2 #27} 
+{==============2-d half of 1-th MS arc===============}
+QUADRUPOLE 5 0.879 0;{QFA1 #28} 
+DL 0.25;{OD1 #29} 
+DL 0.15;{OSF #30} 
+DL 0.25;{OD2 #31} 
+DIPOLE Lbm Bfield 0 0 0 0;{BDA #32} 
+DL 0.25;{OD2 #33} 
+DIPOLE 15 0 0 0 0 0;{BPM #34} 
+DL 0.25;{OD1 #35} 
+QUADRUPOLE 5 -0.903 0;{QDA1 #36} 
+QUADRUPOLE 5 -0.903 0;{QDA1 #37} 
+DL 0.25;{OD1 #38} 
+SEXTUPOLE2 0.15 GSDP1 0;{SDP1 #39} 
+DL 0.25;{OD2 #40} 
+DIPOLE Lbm Bfield 0 0 0 0;{BDA #41} 
+DL 0.25;{OD2 #42} 
+DIPOLE 15 0 0 0 0 0;{BPM #43} 
+DL 0.25;{OD1 #44} 
+QUADRUPOLE 5 0.879 0;{QFA1 #45} 
+{==========1-th half of 1-th ES arc===================}
+QUADRUPOLE 5 0.831 0;{QFA2 #46} 
+DL 0.25;{OD1 #47} 
+SEXTUPOLE2 0.15 GSFP1 0;{SFP1 #48} 
+DL 0.25;{OD2 #49} 
+SEPARATOR Lplate Eplate 0;{BR3 #50}
+DL 0.25;{OD2 #51} 
+DIPOLE 15 0 0 0 0 0;{BPM #52} 
+DL 0.25;{OD1 #53} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #54} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #55} 
+DL 0.25;{OD1 #56} 
+SEXTUPOLE2 0.15 GSDP2 0;{SDP2 #57} 
+DL 0.25;{OD2 #58} 
+SEPARATOR Lplate Eplate 0;{BR3 #59} 
+DL 0.25;{OD2 #60} 
+DIPOLE 15 0 0 0 0 0;{BPM #61} 
+DL 0.25;{OD1 #62} 
+QUADRUPOLE 5 0.831 0;{QFA2 #63} 
+QUADRUPOLE 5 0.831 0;{QFA2 #64} 
+DL 0.25;{OD1 #65} 
+SEXTUPOLE2 0.15 GSFP2 0;{SFP2 #66} 
+DL 0.25;{OD2 #67} 
+SEPARATOR Lplate Eplate 0;{BR3 #68} 
+DL 0.25;{OD2 #69} 
+DIPOLE 15 0 0 0 0 0;{BPM #70} 
+DL 0.25;{OD1 #71} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #72} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #73} 
+DL 0.25;{OD1 #74} 
+SEXTUPOLE2 0.15 GSDN1 0;{SDN1 #75} 
+DL 0.25;{OD2 #76} 
+SEPARATOR Lplate Eplate 0;{BR3 #77} 
+DL 0.25;{OD2 #78} 
+DIPOLE 15 0 0 0 0 0;{BPM #79} 
+DL 0.25;{OD1 #80} 
+QUADRUPOLE 5 0.831 0;{QFA2 #81} 
+{==============1-th SS(e)========================}
+QUADRUPOLE 5 0.831 0;{QFA2 #82} 
+DL 0.25;{OD1 #83} 
+SEXTUPOLE2 0.15 GSFN1 0;{SFN1 #84} 
+DL 0.25;{OD2 #85} 
+DL 2.17;{ORE #86} 
+DL 0.25;{OD2 #87} 
+DIPOLE 15 0 0 0 0 0;{BPM #88} 
+DL 0.25;{OD1 #89} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #90} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #91} 
+DL 0.25;{OD1 #92} 
+SEXTUPOLE2 0.15 GSDN2 0;{SDN2 #93} 
+DL 0.25;{OD2 #94} 
+DL 2.17;{ORE #95} 
+DL 0.25;{OD2 #96} 
+DIPOLE 15 0 0 0 0 0;{BPM #97} 
+DL 0.25;{OD1 #98} 
+QUADRUPOLE 5 0.831 0;{QFA2 #99} 
+{============2-d half of 1-th ES arc==================}
+QUADRUPOLE 5 0.831 0;{QFA2 #100} 
+DL 0.25;{OD1 #101} 
+SEXTUPOLE2 0.15 GSFN1 0;{SFN1 #102} 
+DL 0.25;{OD2 #103} 
+SEPARATOR Lplate Eplate 0;{BR3 #104} 
+DL 0.25;{OD2 #105} 
+DIPOLE 15 0 0 0 0 0;{BPM #106} 
+DL 0.25;{OD1 #107} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #108} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #109} 
+DL 0.25;{OD1 #110} 
+SEXTUPOLE2 0.15 GSDN1 0;{SDN1 #111} 
+DL 0.25;{OD2 #112} 
+SEPARATOR Lplate Eplate 0;{BR3 #113} 
+DL 0.25;{OD2 #114} 
+DIPOLE 15 0 0 0 0 0;{BPM #115} 
+DL 0.25;{OD1 #116} 
+QUADRUPOLE 5 0.831 0;{QFA2 #117} 
+QUADRUPOLE 5 0.831 0;{QFA2 #118} 
+DL 0.25;{OD1 #119} 
+SEXTUPOLE2 0.15 GSFP2 0;{SFP2 #120} 
+DL 0.25;{OD2 #121} 
+SEPARATOR Lplate Eplate 0;{BR3 #122} 
+DL 0.25;{OD2 #123} 
+DIPOLE 15 0 0 0 0 0;{BPM #124} 
+DL 0.25;{OD1 #125} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #126} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #127} 
+DL 0.25;{OD1 #128} 
+SEXTUPOLE2 0.15 GSDP2 0;{SDP2 #129} 
+DL 0.25;{OD2 #130} 
+SEPARATOR Lplate Eplate 0;{BR3 #131} 
+DL 0.25;{OD2 #132} 
+DIPOLE 15 0 0 0 0 0;{BPM #133} 
+DL 0.25;{OD1 #134} 
+QUADRUPOLE 5 0.831 0;{QFA2 #135} 
+{==================1-th half of 2-d MS arc===========}
+QUADRUPOLE 5 0.879 0;{QFA1 #136} 
+DL 0.25;{OD1 #137} 
+SEXTUPOLE2 0.15 GSFP1 0;{SFP1 #138} 
+DL 0.25;{OD2 #139} 
+DIPOLE Lbm Bfield 0 0 0 0;{BDA #140} 
+DL 0.25;{OD2 #141} 
+DIPOLE 15 0 0 0 0 0;{BPM #142} 
+DL 0.25;{OD1 #143} 
+QUADRUPOLE 5 -0.903 0;{QDA1 #144} 
+QUADRUPOLE 5 -0.903 0;{QDA1 #145} 
+DL 0.25;{OD1 #146} 
+SEXTUPOLE2 0.15 GSDP1 0;{SDP1 #147} 
+DL 0.25;{OD2 #148} 
+DIPOLE Lbm Bfield 0 0 0 0;{BDA #149} 
+DL 0.25;{OD2 #150} 
+DIPOLE 15 0 0 0 0 0;{BPM #151} 
+DL 0.25;{OD1 #152} 
+QUADRUPOLE 5 0.879 0;{QFA1 #153} 
+{====================1-th half of 2-d SS(b)==========}
+QUADRUPOLE 5 0.831 0;{QFA2 #154} 
+DL 0.25;{OD1 #155} 
+DL 0.15;{OSF #156}
+DL 0.25;{OD2 #157} 
+DL 2.2;{ORB #158} 
+DL 0.25;{OD2 #159} 
+DIPOLE 15 0 0 0 0 0;{BPM #160} 
+DL 0.25;{OD1 #161} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #162} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #163} 
+DL 0.25;{OD1 #164} 
+DL 0.15;{OSD #165}
+DL 0.25;{OD2 #166} 
+DL 2.2;{ORB #167} 
+DL 0.25;{OD2 #168} 
+DIPOLE 15 0 0 0 0 0;{BPM #169} 
+DL 0.25;{OD1 #170} 
+QUADRUPOLE 5 0.831 0;{QFA2 #171} 
+QUADRUPOLE 5 0.831 0;{QFA2 #172} 
+DL 0.25;{OD1 #173} 
+DL 0.15;{OSF #174}
+DL 0.25;{OD2 #175} 
+DL 2.2;{ORB #176} 
+DL 0.25;{OD2 #177} 
+DIPOLE 15 0 0 0 0 0;{BPM #178} 
+DL 0.25;{OD1 #179} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #180} 
+{=============================================}
+{*******************************************************************}
+{************************************SECOND PART******************}
+{*******************************************************************}
+{===============2-d half of 1-th SS(b)================}
+QUADRUPOLE 5 -0.86 0;{QDA2 #181} 
+DL 0.25;{OD1 #182} 
+DL 0.15;{OSD #183} 
+DL 0.25;{OD2 #184} 
+DL 2.2;{ORB #185} 
+DL 0.25;{OD2 #186} 
+DIPOLE 15 0 0 0 0 0;{BPM #187} 
+DL 0.25;{OD1 #188} 
+QUADRUPOLE 5 0.831 0;{QFA2 #189} 
+QUADRUPOLE 5 0.831 0;{QFA2 #190} 
+DL 0.25;{OD1 #191} 
+DL 0.15;{OSF #192} 
+DL 0.25;{OD2 #193} 
+DL 2.2;{ORB #194} 
+DL 0.25;{OD2 #195} 
+DIPOLE 15 0 0 0 0 0;{BPM #196} 
+DL 0.25;{OD1 #197} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #198} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #199} 
+DL 0.25;{OD1 #200} 
+DL 0.15;{OSD #201} 
+DL 0.25;{OD2 #202} 
+DL 2.2;{ORB #203} 
+DL 0.25;{OD2 #204} 
+DIPOLE 15 0 0 0 0 0;{BPM #205} 
+DL 0.25;{OD1 #206} 
+QUADRUPOLE 5 0.831 0;{QFA2 #207} 
+{==============2-d half of 1-th MS arc===============}
+QUADRUPOLE 5 0.879 0;{QFA1 #208} 
+DL 0.25;{OD1 #209} 
+DL 0.15;{OSF #210} 
+DL 0.25;{OD2 #211} 
+DIPOLE Lbm Bfield 0 0 0 0;{BDA #212} 
+DL 0.25;{OD2 #213} 
+DIPOLE 15 0 0 0 0 0;{BPM #214} 
+DL 0.25;{OD1 #215} 
+QUADRUPOLE 5 -0.903 0;{QDA1 #216} 
+QUADRUPOLE 5 -0.903 0;{QDA1 #217} 
+DL 0.25;{OD1 #218} 
+SEXTUPOLE2 0.15 GSDP1 0;{SDP1 #219} 
+DL 0.25;{OD2 #220} 
+DIPOLE Lbm Bfield 0 0 0 0;{BDA #221} 
+DL 0.25;{OD2 #222} 
+DIPOLE 15 0 0 0 0 0;{BPM #223} 
+DL 0.25;{OD1 #224} 
+QUADRUPOLE 5 0.879 0;{QFA1 #225} 
+{==========1-th half of 1-th ES arc===================}
+QUADRUPOLE 5 0.831 0;{QFA2 #226} 
+DL 0.25;{OD1 #227} 
+SEXTUPOLE2 0.15 GSFP1 0;{SFP1 #228} 
+DL 0.25;{OD2 #229} 
+SEPARATOR Lplate Eplate 0;{BR3 #230} 
+DL 0.25;{OD2 #231} 
+DIPOLE 15 0 0 0 0 0;{BPM #232} 
+DL 0.25;{OD1 #233} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #234} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #235} 
+DL 0.25;{OD1 #236} 
+SEXTUPOLE2 0.15 GSDP2 0;{SDP2 #237} 
+DL 0.25;{OD2 #238} 
+SEPARATOR Lplate Eplate 0;{BR3 #239} 
+DL 0.25;{OD2 #240} 
+DIPOLE 15 0 0 0 0 0;{BPM #241} 
+DL 0.25;{OD1 #242} 
+QUADRUPOLE 5 0.831 0;{QFA2 #243} 
+QUADRUPOLE 5 0.831 0;{QFA2 #244} 
+DL 0.25;{OD1 #245} 
+SEXTUPOLE2 0.15 GSFP2 0;{SFP2 #246} 
+DL 0.25;{OD2 #247} 
+SEPARATOR Lplate Eplate 0;{BR3 #248} 
+DL 0.25;{OD2 #249} 
+DIPOLE 15 0 0 0 0 0;{BPM #250} 
+DL 0.25;{OD1 #251} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #252} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #253} 
+DL 0.25;{OD1 #254} 
+SEXTUPOLE2 0.15 GSDN1 0;{SDN1 #255} 
+DL 0.25;{OD2 #256} 
+SEPARATOR Lplate Eplate 0;{BR3 #257} 
+DL 0.25;{OD2 #258} 
+DIPOLE 15 0 0 0 0 0;{BPM #259} 
+DL 0.25;{OD1 #260} 
+QUADRUPOLE 5 0.831 0;{QFA2 #261} 
+{==============1-th SS(e)========================}
+QUADRUPOLE 5 0.831 0;{QFA2 #262} 
+DL 0.25;{OD1 #263} 
+SEXTUPOLE2 0.15 GSFN1 0;{SFN1 #264} 
+DL 0.25;{OD2 #265} 
+IF RFFLAG=1; RF VRF 0 NURF 0 0.05; ENDIF;
+DL 2.17;{ORE #266} 
+DL 0.25;{OD2 #267} 
+DIPOLE 15 0 0 0 0 0;{BPM #268} 
+DL 0.25;{OD1 #269} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #270} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #271} 
+DL 0.25;{OD1 #272} 
+SEXTUPOLE2 0.15 GSDN2 0;{SDN2 #273} 
+DL 0.25;{OD2 #274} 
+DL 2.17;{ORE #275} 
+DL 0.25;{OD2 #276} 
+DIPOLE 15 0 0 0 0 0;{BPM #277} 
+DL 0.25;{OD1 #278} 
+QUADRUPOLE 5 0.831 0;{QFA2 #279} 
+{============2-d half of 1-th ES arc==================}
+QUADRUPOLE 5 0.831 0;{QFA2 #280} 
+DL 0.25;{OD1 #281} 
+SEXTUPOLE2 0.15 GSFN1 0;{SFN1 #282} 
+DL 0.25;{OD2 #283} 
+SEPARATOR Lplate Eplate 0;{BR3 #284} 
+DL 0.25;{OD2 #285} 
+DIPOLE 15 0 0 0 0 0;{BPM #286} 
+DL 0.25;{OD1 #287} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #288} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #289} 
+DL 0.25;{OD1 #290} 
+SEXTUPOLE2 0.15 GSDN1 0;{SDN1 #291} 
+DL 0.25;{OD2 #292} 
+SEPARATOR Lplate Eplate 0;{BR3 #293} 
+DL 0.25;{OD2 #294} 
+DIPOLE 15 0 0 0 0 0;{BPM #295} 
+DL 0.25;{OD1 #296} 
+QUADRUPOLE 5 0.831 0;{QFA2 #297} 
+QUADRUPOLE 5 0.831 0;{QFA2 #298} 
+DL 0.25;{OD1 #299} 
+SEXTUPOLE2 0.15 GSFP2 0;{SFP2 #300} 
+DL 0.25;{OD2 #301} 
+SEPARATOR Lplate Eplate 0;{BR3 #302} 
+DL 0.25;{OD2 #303} 
+DIPOLE 15 0 0 0 0 0;{BPM #304} 
+DL 0.25;{OD1 #305} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #306} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #307} 
+DL 0.25;{OD1 #308} 
+SEXTUPOLE2 0.15 GSDP2 0;{SDP2 #309} 
+DL 0.25;{OD2 #310} 
+SEPARATOR Lplate Eplate 0;{BR3 #311} 
+DL 0.25;{OD2 #312} 
+DIPOLE 15 0 0 0 0 0;{BPM #313} 
+DL 0.25;{OD1 #314} 
+QUADRUPOLE 5 0.831 0;{QFA2 #315} 
+{==================1-th half of 2-d MS arc===========}
+QUADRUPOLE 5 0.879 0;{QFA1 #316} 
+DL 0.25;{OD1 #317} 
+SEXTUPOLE2 0.15 GSFP1 0;{SFP1 #318} 
+DL 0.25;{OD2 #319} 
+DIPOLE Lbm Bfield 0 0 0 0;{BDA #320} 
+DL 0.25;{OD2 #321} 
+DIPOLE 15 0 0 0 0 0;{BPM #322} 
+DL 0.25;{OD1 #323} 
+QUADRUPOLE 5 -0.903 0;{QDA1 #324} 
+QUADRUPOLE 5 -0.903 0;{QDA1 #325} 
+DL 0.25;{OD1 #326} 
+SEXTUPOLE2 0.15 GSDP1 0;{SDP1 #327} 
+DL 0.25;{OD2 #328} 
+DIPOLE Lbm Bfield 0 0 0 0;{BDA #329} 
+DL 0.25;{OD2 #330} 
+DIPOLE 15 0 0 0 0 0;{BPM #331} 
+DL 0.25;{OD1 #332} 
+QUADRUPOLE 5 0.879 0;{QFA1 #333} 
+{====================1-th half of 2-d SS(b)==========}
+QUADRUPOLE 5 0.831 0;{QFA2 #334} 
+DL 0.25;{OD1 #335} 
+DL 0.15;{OSF #336}
+DL 0.25;{OD2 #337} 
+DL 2.2;{ORB #338} 
+DL 0.25;{OD2 #339} 
+DIPOLE 15 0 0 0 0 0;{BPM #340} 
+DL 0.25;{OD1 #341} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #342} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #343} 
+DL 0.25;{OD1 #344} 
+DL 0.15;{OSD #345}
+DL 0.25;{OD2 #346} 
+DL 2.2;{ORB #347} 
+DL 0.25;{OD2 #348} 
+DIPOLE 15 0 0 0 0 0;{BPM #349} 
+DL 0.25;{OD1 #350} 
+QUADRUPOLE 5 0.831 0;{QFA2 #351} 
+QUADRUPOLE 5 0.831 0;{QFA2 #352} 
+DL 0.25;{OD1 #353} 
+DL 0.15;{OSF #354}
+DL 0.25;{OD2 #355} 
+DL 2.2;{ORB #356} 
+DL 0.25;{OD2 #357} 
+DIPOLE 15 0 0 0 0 0;{BPM #358} 
+DL 0.25;{OD1 #359} 
+QUADRUPOLE 5 -0.86 0;{QDA2 #360} 
+{EndLattice}
+{=============================================}
+
+endprocedure;
+run;
+end;
+

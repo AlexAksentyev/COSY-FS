@@ -1,0 +1,270 @@
+INCLUDE 'bin/core/utilities';
+
+  PROCEDURE ROTATE PHI;
+    VARIABLE M NM1 4; VARIABLE ANG NM2;
+    VARIABLE i 1;
+    ANG := PHI*DEGRAD;
+    M(1):= COS(ANG)*MAP(1) + SIN(ANG)*MAP(3);
+    M(3):=-SIN(ANG)*MAP(1) + COS(ANG)*MAP(3);
+    M(2):= COS(ANG)*MAP(2) + SIN(ANG)*MAP(4);
+    M(4):=-SIN(ANG)*MAP(2) + COS(ANG)*MAP(4);
+    LOOP i 1 4; MAP(i):=M(i);  ENDLOOP;
+  ENDPROCEDURE; {ROTATE}
+
+  PROCEDURE DIPOLE L B G ANGLE1 ANGLE2 TILT;
+    VARIABLE B0 1; VARIABLE BX 1;
+    VARIABLE L0 1; VARIABLE TOF 1;
+    VARIABLE GRAD 1; VARIABLE DWMDM 1;
+    VARIABLE TILT0 1;
+    VARIABLE NT 1;
+    VARIABLE KN 1 1;
+    VARIABLE S1 1 1;
+    VARIABLE S2 1 1;
+    VARIABLE R 1;
+    VARIABLE PHI 1;
+    NT:=1;
+    L0:=L/100;{in meters}
+    IF (B=0);
+      DL L0;
+    ELSEIF LO(1); 
+      B0:=ABS(B)/10;{in Tesla}
+      GRAD:=G*10;{in T/m}
+      R:=CONS(P0)/(CLIGHT*1e-6)/B0;
+      KN(1):=GRAD/R/B0;
+      S1(1):=ANGLE1*DEGRAD;
+      S2(1):=ANGLE2*DEGRAD;
+      PHI:=L0/R/DEGRAD;
+      TILT0:=TILT;
+      ROTATE TILT0;
+      IF (B<0);
+        CB;
+      ENDIF;
+      { DI R PHI 0.05 0 0 0 0; }
+      { WRITE 6 'DI' L0 PHI; }
+      MCLK L0 PHI 0.05 KN S1 S2 NT;
+      IF (B<0);
+        CB;
+      ENDIF;
+      ROTATE -TILT0;
+      TOF := L0/CONS(V0);
+      BX := B0*SIN(TILT0);
+      DWMDM := Z0/M0*EZERO/AMU*G0*BX;
+      RSX TOF*DWMDM;
+    ENDIF;
+  ENDPROCEDURE; {DIPOLE}
+
+  PROCEDURE SEPARATOR L B TILT;
+    VARIABLE B0 1;
+    VARIABLE L0 1;
+    VARIABLE R 1;
+    VARIABLE PHI 1;
+    VARIABLE N1 1;
+    VARIABLE N2 1;
+    VARIABLE N3 1;
+    VARIABLE N4 1;
+    VARIABLE N5 1;
+    L0:=L/100;{in meters}
+    IF (B=0);
+      DL L0;
+    ELSEIF LO(1); 
+      R:=CONS(CHIE)/ABS(B)/1e5;
+      PHI:=L0/R/DEGRAD;
+      IF (B<0);
+        CB;
+      ENDIF;
+      ES R PHI 0.05 N1 N2 N3 N4 N5; {Electrostatic bending element}
+      IF (B<0);
+        CB;
+      ENDIF;
+    ENDIF;
+  ENDPROCEDURE; {SEPARATOR}
+
+  PROCEDURE WIEN1 L2 B1 B2 TILT; {homogenous WF; closed orbit SHOULD be preserved}
+  {parasitic (tilt) fields are implemented via a rotated homogenous WIEN filter AFTER the main filter}
+    VARIABLE R1 1;
+    VARIABLE R2 1;
+    VARIABLE B0 1; VARIABLE B3 1;
+    VARIABLE L1 1;
+    VARIABLE TILT0 1;
+    VARIABLE SIGNUM 1;
+    L1:=L2/100; {in meters}
+    B0:=B1/10; { in Tesla }
+    B3:=B2*1e5;{ in V/m   }
+    R2:=CONS(CHIM)/ABS(B0);
+    R1:=CONS(CHIE)/ABS(B3);
+    TILT0 := TILT;
+    WF R1 R2 L1 0.05;
+    SIGNUM := SIG(TILT0);
+    IF TILT0#0;
+      B0 := B0*SIN(TILT0)*10;
+      R2 := CONS(CHIM)/ABS(B0);
+      R1 := R2;
+      ROTATE -SIGNUM*90;
+        WF R1 R2 .01 0.05;
+      ROTATE SIGNUM*90;
+    ENDIF;
+  ENDPROCEDURE; { END OF WIEN }
+
+
+  PROCEDURE WIEN L2 B1 B2 TILT; {homogenous WF; closed orbit preserved}
+  {parasitic (tilt) fields are implemented via a spin kick like Eremey thesis section 6.5.3}
+    VARIABLE R1 1;
+    VARIABLE R2 1;
+    VARIABLE B0 1; VARIABLE B3 1;
+    VARIABLE L1 1;
+    VARIABLE TILT0 1; VARIABLE TOF 1;
+    VARIABLE BX 1; VARIABLE EY 1;
+    VARIABLE BETA 1; VARIABLE DWMDM 1; 
+    L1:=L2/100; {in meters}
+    B0:=ABS(B1)/10; {in Tesla}
+    B3:=ABS(B2)*1e5;   {in V/m}
+    R2:=CONS(CHIM)/B0;
+    R1:=CONS(CHIE)/B3;
+    TILT0 := TILT;
+    WF R1 R2 L1 0.05;
+    IF TILT0#0;
+      BX := B0*TAN(TILT0);
+      EY := CONS(CHIE)/CONS(CHIM)*BX;
+      BETA := CONS(V0)/CLIGHT;
+      DWMDM := Z0/M0*EZERO/AMU*(G0*BX - (G0 - 1/BETA/BETA + 1)*BETA*EY/CLIGHT);
+      TOF := L1/CONS(V0);
+      RSX TOF*DWMDM;
+      { WRITE 6 'BX, EY, DWMDM, ANG:'&FORM(BX&EY&DWMDM&(TOF*DWMDM)); }
+    ENDIF;    
+  ENDPROCEDURE; { END OF WIEN }
+
+  PROCEDURE WIEN2 L2 B1 B2 TILT; {inhomogenous WF; closed orbit not presereved}
+    VARIABLE R1 1;
+    VARIABLE R2 1;
+    VARIABLE B0 1;
+    VARIABLE B3 1;
+    VARIABLE L1 1;
+    VARIABLE I 1;
+    VARIABLE NE 1 5;
+    VARIABLE NM 1 5;
+    VARIABLE TILT0 1;
+    L1:=L2/100; {in meters}
+    B0:=ABS(B1)/10;{in Tesla}
+    B3:=ABS(B2)*1e5;   { in V/m }
+    R2:=CONS(CHIM)/B0;
+    R1:=CONS(CHIE)/B3;
+    {WRITE 6 'L,B,E' L1 B0 B2;}
+    WRITE 6 'RB,RE' R1 R2;
+    {WRITE 6 'CHIE,CHIM' CONS(CHIE) CONS(CHIM);
+    WRITE 6 'M,V,Z' RE(M0) RE(V0) Z0;}
+    WRITE 6 'R' 1/(1/R2-1/R1);
+    NE(1):=-1;NE(2):=1;NE(3):=-1;NE(4):=1;NE(5):=-1;
+    NM(1):=0;NM(2):=0;NM(3):=0;NM(4):=0;NM(5):=0;
+    LOOP I 1 5; NE(I):=NE(I)*(1/R2-1/R1)^I; ENDLOOP;
+    TILT0 := TILT;
+    WRITE 6 'WIEN2 TILT = '&ST(TILT0);
+    ROTATE TILT0;
+    WC R1 R2 L1 0.05 NE NM 5;
+    ROTATE -TILT0;
+  ENDPROCEDURE; {END OF WIEN2}
+
+  PROCEDURE QUADRUPOLE L G TILT;
+    VARIABLE L0 1;
+    VARIABLE G0 1;
+    VARIABLE TILT0 1;
+
+    L0:=L/100;{in meters}
+    IF (G=0);
+      DL L0;
+    ELSEIF (1=1); 
+      G0:=G*10;{in Tesla/m}
+      TILT0:=TILT;
+      ROTATE TILT0;
+      MQ L0 G0*0.05 0.05; {Magnetic quadrupole}
+      {WRITE 6 'MQ' L0 G0*0.05;}
+      ROTATE -TILT0;
+    ENDIF;
+  ENDPROCEDURE; { END OF QUADRUPOLE }
+
+  PROCEDURE SEXTUPOLE L S Tilt;
+    VARIABLE L0 1;
+    VARIABLE S0 1000;
+
+    L0:=L;{in meters}
+    IF (CONS(S)=0);
+      DL L0;
+    ELSEIF (1=1); 
+      S0:=S*1000;{in T/m}
+      MH L0 S0*0.05*0.05 0.05;
+    ENDIF;
+  ENDPROCEDURE;{ END OF SEXTUPOLE }
+
+  PROCEDURE SEXTUPOLE1 L S Tilt;
+    VARIABLE L0 1;
+    VARIABLE S0 1;
+
+    L0:=L/100;{in meters}
+    IF (S=0);
+      DL L0;
+    ELSEIF (1=1); 
+      S0:=S/2;
+      MH L0 S0 0.05;
+    ENDIF;
+  ENDPROCEDURE; { END OF SEXTUPOLE1 }
+
+  PROCEDURE SEXTUPOLE2 L S Tilt;
+    VARIABLE L0 1;
+    VARIABLE S0 1;
+    L0:=L;    
+    IF (S=0);
+      DL L0;
+    ELSEIF (1=1); 
+      S0:=S*CONS(CHIM)*0.05*0.05;
+      MH L0 S0 0.05;
+    ENDIF;
+  ENDPROCEDURE; { END OF SEXTUPOLE2 }
+
+  PROCEDURE M_ELEMENT m B TILT;
+    VARIABLE B0 1;
+    VARIABLE TILT0 1;
+
+    IF (B#0);
+      IF (m=1);
+        TILT0:=TILT;
+        ROTATE TILT0;
+        B0:=B/10;{in Tesla}
+        MQ 1e-6 (B0/1E-6)*0.05 0.05;
+        DL -1e-6;
+        ROTATE -TILT0;
+      ENDIF;
+      IF (m=2);
+        TILT0:=TILT;
+        ROTATE TILT0;
+        B0:=B*10;{in Tesla/m}
+        MH 1e-6 (B0/1E-6)*0.05*0.05 0.05;
+        DL -1e-6;
+        ROTATE -TILT0;
+      ENDIF;
+      IF (m=3);
+        TILT0:=TILT;
+        ROTATE TILT0;
+        B0:=B*1000;{in Tesla/m}
+        MO 1e-6 (B0/1E-6)*0.05*0.05*0.05 0.05;
+        DL -1e-6;
+        ROTATE -TILT0;
+      ENDIF;
+    ENDIF;
+  ENDPROCEDURE; { END OF M_ELEMENT }
+
+
+  PROCEDURE SOLENOID L B A;
+    VARIABLE L0 1;
+    VARIABLE B0 1;
+    VARIABLE A0 1;
+
+    L0:=L/100;{in meters}
+    B0:=B/10;{in T/m}
+    IF (A=0);
+      CMSP B0 0.05 10000 (10000-L0)/2 (10000+L0)/2;
+    ELSEIF (1=1);
+      A0:=A/100;{in T/m}
+      CMS B0 A0 L0;
+    ENDIF;
+  ENDPROCEDURE; {END OF SOLENOID}
+
+SAVE 'bin/core/elements';

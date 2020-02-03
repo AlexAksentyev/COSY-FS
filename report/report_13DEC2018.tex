@@ -1,0 +1,193 @@
+\documentclass{report}
+
+\usepackage{phdstyle}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english, russian]{babel}
+
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{float}
+
+\begin{document}
+\section{Зависимость оценки частоты прецессии поляризации планарного, вертикального, гауссовского пучка от вертикального сдвига от замкнутой орбиты}
+\paragraph{BASE TEST.}
+В этом тесте я трекаю заданный ансамбль частиц через данную структуру напротяжении 1.2е6 оборотов. Через каждые 800 оборотов я записываю спин тюн и компоненты оси прецессии (mu0, nx, ny, nz), а также спиновые компоненты S_X, S_Y, S_Z, и все компоненты фазового пространства (X, A, Y, B, T, D) каждой частицы.
+
+\paragraph{BEAMOFFSET TEST.}
+В этом тесте я генерирую некоторое число NUM плоских гауссовских банчей. Все банчи состоят из 30 частиц, распределённых при инжекции в вертикальной плоскости как y ~ N(offset, 1e-4); x,d = 0. Offset варьируется от LOW до HIGH. Запускается BASE TEST. 
+
+После пробега по всем банчам дополнительно выводятся данные для построения графика декогеренции по всему диапазону [LOW, HIGH]: инжектируется NUM частиц с вертикальными оффсетами в диапазоне, для них высчисляются спин тюн и ось прецессии, и оффсет. Этот набор данных назовём DECOH.
+
+\paragraph{MULTISEXT TEST.}
+
+Здесь я генерирую несколько значений (11) градиента GSY секступоля для подавления декогеренции в вертикальной плоскости вокруг референсного значения GSY0 = -2.5e-3. GSY0 это оптимальное значение для идеальной структуры; GSY варьируется от GSY0 – 5e-3 до GSY0 + 5e-3.
+
+Для каждого значения генерируется наклонённая структура (наклоны одинаковы для всех генераций структуры), запускается BEAMOFFSET TEST для NUM=10 банчей с offset в диапазоне [-1e-3, 1e-3].
+
+\paragraph{БАЗОВЫЕ ПАРАМЕТРЫ.}
+Мэпы строятся до 3го порядка, энергия пучка 270.0092 МэВ (строго FS). Наклоны TILTS генерируются из N(0, 5e-4 [rad]). Порядок 3 выбран для устойчивости TSS (функция вычисляющая спин тюн и ось прецессии) на энергии FS. Энергия FS (а не ровно 270МэВ) выбрана чтобы уменьшить вертикальную компоненту оси прецессии.
+
+\paragraph{АНАЛИЗ РЕЗУЛЬТАТОВ MULTISEXT TEST.}
+Одна инжекция банча составляет RUN. Одно значение градиента обозначим как CASE. Один CASE состоит из 10 RUNs, всего у нас 11 CASEs.
+
+Для одного RUN вычисляется поляризация как $\vec P = \frac{\sum_i\vec s_i}{|\sum_i\vec s_i|}$. Поляризация фиритуется функцией $f(t; a,f,\phi) = a\cdot sin(2\pi\cdot f\cdot t + \phi)$, оцениваются все три параметра $(\hat a, \hat f, \hat\phi)$. После пробега по RUNs для каждого фитируемого параметра формируется массив пар чисел (ожидание параметра, стандартная ошибка оценки параметра); элемент массива соответствует одному RUN.
+
+Так делается для каждого CASE, из массивов формируется матрица: по строчкам CASEs, по колонкам RUNs, элемента --- пара чисел.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/multisext_test/ny_vs_offset}
+    \caption{Vertical component of the SPA $\bar n_y$.\label{fig:DECOH_full_ny}}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/multisext_test/ny_vs_offset_zoom}
+    \caption{Zoom of Figure~\ref{fig:DECOH_full_ny}. Vertical component $\bar n_y$ (and $\bar n_x$) is parabolic around the reference orbit for the optimal setting, unlike $nu_s$, which is linear.}
+  \end{subfigure}
+  
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/multisext_test/spin_tune_vs_offset}
+    \caption{Spin tune $\nu_s$.}
+  \end{subfigure}
+  \caption{DECOH data poltted against the beam offset in the vertical direction for each sextupole setting.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/multisext_test/FreqY_vs_offset}
+    \caption{Full range.\label{fig:FreqY_vs_offset}}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/multisext_test/FreqY_vs_offset_zoom}
+    \caption{Zoom of Figure~\ref{fig:FreqY_vs_offset}. Vertical polarization depends on the beam offset linearly, like spin tune $\nu_s$, and unlike $\bar n_y$.}
+  \end{subfigure}
+  \caption{Vertical polarization precession frequency estimate vs beam offset for the optimal sextupole setting (orange), and two settings at the opposite range of the swept gradient space.}
+\end{figure}
+
+\section{То же самое, но при фитировании спинов частиц по-отдельности}
+Для этого анализа были взяты данные для одного конкретного градиента секступоля (с левой границы диапазона; специально подальше от оптимума).
+
+Данные $(nu_s, \bar n_x, \bar n_y, \bar n_z)$ со всех RUNs были собраны в единую таблицу, также было сделано со спиновыми данными. То есть, данные по $S_y$ компоненте спина представляют собой матрицу $1501\times 300$, 1501 точек данных для 300 частиц, каждая из которых сдвинута от замкнутой орбиты на некоторое расстояние по вертикали.
+
+Каждая колонка из этой матрицы была отдельно профитирована функцией $f(t; a,f,\phi)$. Отметим, что residual, вычисляемый как $\hat\epsilon = Y_{data} - f(t;\hat a, \hat f, \hat\phi)$ показывает систематическую структуру (Figures~\ref{fig:spin_residual},~\ref{fig:polarization_residual}, и для сравнения~\ref{fig:noise_sine_pacf}) как в случае фитирования спина отдельной частицы, так и в случае фитирования общей поляризации пучка.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/spin_vs_polarization_fit_comp/spin_res_vs_fitted}
+    \caption{Residual vs fitted plot exhibits a clear non-random error pattern.}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+      \includegraphics[width=\linewidth]{../img/Artem/spin_vs_polarization_fit_comp/spin_res_pacf}
+      \caption{Partial autocorrelation plot indicates a dependence of residuals on previous values.}
+  \end{subfigure}
+  \caption{Analysis of the spin fit residuals for the fit of spin $S_y$ of the most vertically offset particle in the worst sextupole setting considered.\label{fig:spin_residual}}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/spin_vs_polarization_fit_comp/polarization_res_vs_fitted}
+    \caption{Residual vs fitted plot exhibits a clear non-random error pattern.}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+      \includegraphics[width=\linewidth]{../img/Artem/spin_vs_polarization_fit_comp/polarization_res_pacf}
+      \caption{Partial autocorrelation plot exhibits a dependence of residuals on previous values}
+  \end{subfigure}
+  \caption{Analysis of the net polarization fit residuals.\label{fig:polarization_residual}}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/spin_vs_polarization_fit_comp/white_noise_pacf}
+    \caption{White noise.}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+      \includegraphics[width=\linewidth]{../img/Artem/spin_vs_polarization_fit_comp/sin_50Hz_pacf}
+      \caption{Rapidly oscillating sine.}
+  \end{subfigure}
+  \caption{For comparison, PACF plots for white noise $N(0, \sigma_{resid})$ and a sine function with $f = 50$ Hz.\label{fig:noise_sine_pacf}}
+\end{figure}
+
+Для примера, покажем как выглядит вертикальная компонента оси прецессии в зависимости от времени для нескольких частиц, удалённых от замкнутой орбиты на некоторое расстояние (Figure~\ref{fig:ny_vs_turn}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{../img/Artem/decoherence_frequency_dependence/ny_vs_turn}
+  \caption{Vertical component of $\bar n$ for particles with offsets, resp.: [1.02749, 1.02937, 1.02840] mm. We obserwe rapid oscillations about some average level. This average level will change parabolically with the particle's vertical offset (see Figure~\ref{fig:mean_tune_axis} below). The rapid oscillations are due to betatron motion (see Figures~\ref{fig:tune_axis_position_y},~\ref{fig:tune_axis_position_x}).\label{fig:ny_vs_turn}}
+\end{figure}
+
+Малоамплитудные колебания вокруг средних уровней компонент частоты прецессии, наблюдаемые на рисунке~\ref{fig:ny_vs_turn} выше происходят из бетатронных колебаний, как следует из рисунков~\ref{fig:tune_axis_position_y},~\ref{fig:tune_axis_position_x}.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/decoherence_frequency_dependence/ny_vs_y}
+    \caption{Vertical $\bar n$ component vs the particle vertical position.}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/decoherence_frequency_dependence/spin_tune_vs_y}
+    \caption{Spin tune vs the particle vertical position.}
+  \end{subfigure}
+  \caption{Particle precession frequency vs its vertical offset. The plots exhibit non-functional dependence pf the parameters on the vertical particle position as a result of their dependence on the radial position, which also oscillates at a small amplitude (see Figure~\ref{fig:tune_axis_position_x}). \label{fig:tune_axis_position_y}}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/decoherence_frequency_dependence/ny_vs_x}
+    \caption{Vertical $\bar n$ component vs the particle horizontal position.}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/decoherence_frequency_dependence/spin_tune_vs_x}
+    \caption{Spin tune vs the particle horizontal position.}
+  \end{subfigure}
+  \caption{Particle precession frequency vs its horizontal offset.\label{fig:tune_axis_position_x}}
+\end{figure}
+
+По данным для спин тюна и оси прецессии частицы были вычислены средние уровни (и их стандартные ошибки), вокруг которых происходят малоамплитудные осцилляции $(\avg{\nu_s}, \avg{\bar n})$, $(\sigma_{\avg{\nu_s}}, \sigma_{\avg{\bar n}})$. Их графики для каждой частицы представлены на Figure~\ref{fig:mean_tune_axis}. Видно, что средние значения для спин тюна и компонент оси прецессии связаны между собой линейно.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/decoherence_frequency_dependence/mean_spin_tune_vs_offset}
+    \caption{Mean spin tune vs particle vertical offset\label{fig:mean_tune_axis}}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/decoherence_frequency_dependence/mean_nbar_vs_mean_spin_tune}
+    \caption{Mean $\bar n$ components vs mean spin tune}
+  \end{subfigure}
+  \caption{Mean spin tune and precession axis of a particle plotted against its vertical offset and each other.\label{fig:mean_tune_axis}}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/decoherence_frequency_dependence/freqY_vs_offset}
+    \caption{Оценка частоты $\hat f$ прецессии спина в зависимости от начального вертикального сдвига частицы.}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/decoherence_frequency_dependence/freqY_vs_abs_offset}
+    \caption{Оценка частоты $\hat f$ прецессии спина в зависимости от модуля начального вертикального сдвига частицы.}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[width=\linewidth]{../img/Artem/decoherence_frequency_dependence/freqY_vs_mean_spin_tune}
+    \caption{$\hat f$ в зависимости от спин тюна.}
+  \end{subfigure}
+  \caption{Frequency estimate plotted against particle offset and spin tune.}
+\end{figure}
+
+\end{document}

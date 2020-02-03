@@ -1,0 +1,50 @@
+INCLUDE '../bin/FS_BNL_SETUP';
+
+PROCEDURE RUN;
+  VARIABLE V 1 1 1; {2D array representing a polynomial of order n=1}
+  VARIABLE FREQ 1; {Revolution frequency}
+  VARIABLE MU 1000 3; VARIABLE NBAR 100 3;
+  VARIABLE WHERE 100;
+
+  WHERE := '../data/FS/';
+  
+  OV 3 3 1;
+  RP 270.01275*(1+PARA(1)) 1876.5592/AMUMEV 1;
+  RPS 1 -.142987;
+
+  FREQ := REVFREQ(145.85);
+  V(1, 1) := 1500;
+
+  UM; CR; {initialize map, clear rays}
+  {set rays}
+  SR 1e-3 0 0 0 0 0 0 0 2; SSR 0 0 1; 
+  SR 0 0 1e-3 0 0 0 0 0 3; SSR 0 0 1;
+  SR 0 0 0 0 0 -1e-4 0 0 6; SSR 0 0 1;
+  SR 0 0 0 0 0 +1e-4 0 0 5; SSR 0 0 1;
+
+  { define lattice }
+  RF V 0 50*FREQ 0 .1;
+  FS_BNL_SETUP;
+
+  { TSS MU NBAR 0; }
+  TP MU;
+  
+
+  GROUTF '../img/FS/TR' 1;
+  OPENF 8 WHERE&'TRPRAY.txt' 'REPLACE';
+  OPENF 9 WHERE&'TRPSPI.txt' 'REPLACE';
+  TRPRAY 8; TRPSPI 9;
+  TR 10000 100 -1 -3 1.2 1.2 0 0 -12;
+  CLOSEF 8; CLOSEF 9;
+
+  OPENF 10 WHERE&'MAP.txt' 'REPLACE';
+  PM 10; CLOSEF 10;
+  OPENF 10 WHERE&'SPNR.txt' 'REPLACE';
+  PSM 10; CLOSEF 10;
+  OPENF 10 WHERE&'SPINTUNE.txt' 'REPLACE';
+  WRITE 10 MU(1) MU(2) MU(3); CLOSEF 10;
+  
+
+ENDPROCEDURE; {RUN}
+
+RUN; END;
