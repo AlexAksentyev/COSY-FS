@@ -1,4 +1,4 @@
-INCLUDE 'bin/core/elements';
+INCLUDE 'bin/elements';
 
 FUNCTION ACCLEN DUMMY;
   ACCLEN := 149.2067;

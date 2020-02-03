@@ -1,4 +1,4 @@
-INCLUDE 'bin/core/utilities';
+INCLUDE '~/REPOS/COSYINF-CORE/bin/utilities';
 
   PROCEDURE ROTATE PHI;
     VARIABLE M NM1 4; VARIABLE ANG NM2;
@@ -267,4 +267,4 @@ INCLUDE 'bin/core/utilities';
     ENDIF;
   ENDPROCEDURE; {END OF SOLENOID}
 
-SAVE 'bin/core/elements';
+SAVE 'bin/elements';

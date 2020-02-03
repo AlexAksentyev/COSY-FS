@@ -1,4 +1,4 @@
-INCLUDE 'bin/core/elements';
+INCLUDE 'bin/elements';
 
 FUNCTION ACCLEN DUMMY;
   ACCLEN := 145.8456;
@@ -876,4 +876,4 @@ PROCEDURE CCW_SETUP VFRF GSX GSY GSD TILTS;
   { ******** same as in CW_setup}
 ENDPROCEDURE; {CCW_SETUP} 
 
-SAVE 'bin/setups/BNL8gsd';
+SAVE 'bin/BNL8gsd';
